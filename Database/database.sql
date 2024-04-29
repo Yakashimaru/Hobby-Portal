@@ -52,3 +52,16 @@ CREATE TABLE IF NOT EXISTS games(
     Favourite VARCHAR(255),
     Highlights VARCHAR(255)
 )
+
+ALTER TABLE figurine RENAME COLUMN figureprice to figure_price;
+ALTER TABLE figurine RENAME COLUMN shippingprice to shipping_price;
+ALTER TABLE figurine RENAME COLUMN totalprice to total_price;
+ALTER TABLE figurine RENAME COLUMN itemtype to item_type;
+ALTER TABLE figurine RENAME COLUMN releaseyear to release_year;
+ALTER TABLE games RENAME COLUMN subgenre to sub_genre;
+ALTER TABLE multigames RENAME COLUMN subgenre to sub_genre;
+ALTER TABLE visualnovel RENAME COLUMN genre1 to genre_1;
+ALTER TABLE visualnovel RENAME COLUMN genre2 to genre_2;
+ALTER TABLE visualnovel RENAME COLUMN fav1 to fav_1;
+ALTER TABLE visualnovel RENAME COLUMN fav2 to fav_2;
+ALTER TABLE visualnovel RENAME COLUMN fav3 to fav_3;
