@@ -1,5 +1,5 @@
 .venv
-
-backend/settings
-
+**/settings/
 Database/*.csv
+__pycache__
+

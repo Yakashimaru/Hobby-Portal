@@ -16,9 +16,15 @@ def getFigurine():
         cur = conn.cursor()
         cur.execute("SELECT * FROM figurine")
         rows = cur.fetchall()
+
+        columns = [desc[0] for desc in cur.description]
+
         conn.commit()
         cur.close()
-        return jsonify(rows)
+
+        result = {'columns': columns, 'rows': rows}
+
+        return jsonify(result)
 
     except Exception as e:
         # Unexpected error in code
