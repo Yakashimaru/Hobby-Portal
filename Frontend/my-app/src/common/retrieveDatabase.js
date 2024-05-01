@@ -1,5 +1,5 @@
 
-import initial_url from "../settings/databaseSettings";
+import { initial_url } from "../settings/databaseSettings";
 
 async function retrieveDatabase(url_path) {
     const figurineUrl = initial_url + url_path;

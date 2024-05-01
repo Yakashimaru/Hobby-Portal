@@ -11,13 +11,19 @@ const Navbar = () => {
 						Home
 					</NavLink>
 					<NavLink to="/Table" activeStyle>
-						Table
+						Figurine
 					</NavLink>
-					<NavLink to="/blogs" activeStyle>
-						Blogs
+					<NavLink to="/" activeStyle>
+						Games
 					</NavLink>
 					<NavLink to="/sign-up" activeStyle>
-						Sign Up
+						Multiplayer games
+					</NavLink>
+					<NavLink to="/vn" activeStyle>
+						Visual Novels
+					</NavLink>
+					<NavLink to="/sign-up" activeStyle>
+						Kpop
 					</NavLink>
 				</NavMenu>
 			</Nav>

@@ -1,4 +1,3 @@
-import logo from './logo.svg';
 import Navbar from "./components/Navbar";
 import {
     BrowserRouter as Router,
@@ -8,8 +7,6 @@ import {
 
 
 import './App.css';
-
-//import Home from './pages';
 
 import Table from './pages/table';
 
