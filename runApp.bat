@@ -5,8 +5,8 @@ cd /d "%~dp0.venv\Scripts"
 call activate
 
 REM run backend
-cd /d "%~dp0Backend"
-start cmd /k py figurine.py
+cd /d "%~dp0"
+start cmd /k py -m Backend.apis.figurine
 
 REM run frontend
 cd /d "%~dp0Frontend\my-app"
