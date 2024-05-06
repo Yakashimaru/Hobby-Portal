@@ -8,14 +8,14 @@ import {
 
 import './App.css';
 
-import Table from './pages/table';
+import Table from './pages/displayTable';
 
 function App() {
   return (
     <Router>
         <Navbar />
         <Routes>
-            <Route path="/Table" element={<Table />} />
+            <Route path="/displayTable/:table_name" element={<Table />} />
         </Routes>
     </Router>
 );

@@ -10,19 +10,19 @@ const Navbar = () => {
 					<NavLink to="/Home" activeStyle>
 						Home
 					</NavLink>
-					<NavLink to="/Table" activeStyle>
+					<NavLink to="/displayTable/Figurine" activeStyle>
 						Figurine
 					</NavLink>
-					<NavLink to="/" activeStyle>
+					<NavLink to="/displayTable/Games" activeStyle>
 						Games
 					</NavLink>
-					<NavLink to="/sign-up" activeStyle>
+					<NavLink to="/displayTable/Multigames" activeStyle>
 						Multiplayer games
 					</NavLink>
-					<NavLink to="/vn" activeStyle>
+					<NavLink to="/displayTable/VisualNovel" activeStyle>
 						Visual Novels
 					</NavLink>
-					<NavLink to="/sign-up" activeStyle>
+					<NavLink to="displayTable/Kpop" activeStyle>
 						Kpop
 					</NavLink>
 				</NavMenu>
