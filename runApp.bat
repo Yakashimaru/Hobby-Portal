@@ -6,9 +6,9 @@ call activate
 
 REM run backend
 cd /d "%~dp0"
-start cmd /k py -m Backend.apis.crud_apis
+start "Backend" cmd /k py -m Backend.apis.crud_apis
 
 REM run frontend
 cd /d "%~dp0Frontend\my-app"
-start cmd /k npm start 
+start "Frontend" cmd /k npm start 
 
