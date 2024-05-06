@@ -2,17 +2,25 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 
 import retrieveDatabase from "../common/retrieveDatabase";
+import editDatabase from "../common/editDatabase";
+import formatColumnName from "../common/formatColumnName";
+
+import Form from "../components/Form";
 
 import "../styles/table.css";
-import editDatabase from "../common/editDatabase";
+import "../styles/form.css";
+import { api_paths, initial_url } from "../settings/databaseSettings";
 
 //function Table() {
 const Table = () => {
     const [tableData, setTableData] = useState({ columns: [], rows: [] });
     //Display loading if data is not yet fetched
     const [loading, setLoading] = useState(true);
+    const [showForm, setShowForm] = useState(false);
+
     //Get the table name from the URL
     const { table_name } = useParams();
+    
 
     useEffect(() => {
         const fetchData = async () => {
@@ -20,8 +28,6 @@ const Table = () => {
                 if (table_name) { // Check if table_name is not null or undefined
                     const url_path = `get${table_name.charAt(0).toUpperCase()}${table_name.slice(1)}`;
                     const data = await retrieveDatabase(url_path);
-                    
-                    console.log("Fetched data:", data); // Log fetched data
                     
                     setTableData(data);
                     setLoading(false);
@@ -39,28 +45,52 @@ const Table = () => {
             setTableData({ columns: [], rows: [] });
         };
     }, [table_name]);
-    
 
-    const formatColumnName = (columnName) => {
-        return columnName
-            .replace(/_/g, ' ') // Replace underscores with spaces
-            .replace(/\b\w/g, (char) => char.toUpperCase()); // Capitalize first letter of each word
+    //Form functions
+    const handleNewEntryClick = () => {
+        setShowForm(true);
     };
 
+    const handleCloseForm = () => {
+        setShowForm(false);
+    };
+
+    const handleSubmit = (formData) => {
+        //console.log(table_name)
+        let key = "C"+table_name
+        const path = initial_url+api_paths[key];
+        console.log(path)
+        fetch(path, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData),
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Response from server:', data);
+            setShowForm(false);
+        })
+        .catch(error => {
+            console.error('Error adding new entry:', error);
+        });
+    };
+    
     if (loading){
         return <div>Loading...</div>;
     }
 
     return (
-        <div>
-            
+        <div className="TableContainer">
+        <button className="NewEntryButton" onClick={handleNewEntryClick}>Enter new entry</button>
             <div className="Table">
                 <table>
                     <thead>
                         <tr>
                             <th>Image</th>
                             {tableData.columns.slice(1).map((columnName, columnIndex) => (
-                                <th key={tableData.rows[0][columnIndex + 1]}>{formatColumnName(columnName)}</th>
+                                <th >{formatColumnName(columnName)}</th>
                             ))}
                             <th></th>
                         </tr>
@@ -70,7 +100,7 @@ const Table = () => {
                             <tr key={rowIndex}>
                                 <td><img src={row[0]} alt="TBA" /></td>
                                 {row.slice(1).map((cell, cellIndex) => (
-                                    <td key={tableData.rows[0][cellIndex + 1]}>{cell}</td>
+                                    <td >{cell}</td>
                                 ))}
                                 <td>
                                     <button onClick={() => editDatabase(row)}>Edit</button>
@@ -80,6 +110,13 @@ const Table = () => {
                     </tbody>
                 </table>
             </div>
+            <Form
+                table_name={table_name}
+                columns={tableData.columns}
+                showForm={showForm}
+                onCloseForm={handleCloseForm}
+                onSubmit={handleSubmit}
+            />
         </div>
     );
 }
