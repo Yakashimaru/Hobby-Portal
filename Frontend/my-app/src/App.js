@@ -22,6 +22,7 @@ function App() {
     <Router>
         <Navbar />
         <Routes>
+            <Route path="/" element={<Home />} />
             <Route path="/home" element={<Home />} />
             <Route path="/displayTable/:table_name" element={<Table />} />
         </Routes>
