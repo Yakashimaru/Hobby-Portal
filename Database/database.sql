@@ -1,5 +1,6 @@
 CREATE TABLE IF NOT EXISTS visualNovel (
-    Game VARCHAR(255) PRIMARY KEY,
+    ID SERIAL PRIMARY KEY,
+    Game VARCHAR(255),
     Year INT,
     Developer VARCHAR(255),
     Genre1 VARCHAR(255),
@@ -12,11 +13,11 @@ CREATE TABLE IF NOT EXISTS visualNovel (
     Fav1 VARCHAR(50),
     Fav2 VARCHAR(50),
     Fav3 VARCHAR(50)
-
 );
 
 CREATE TABLE IF NOT EXISTS figurine(
-    Item VARCHAR(255) PRIMARY KEY,
+    ID SERIAL PRIMARY KEY, 
+    Item VARCHAR(255),
     Brand VARCHAR(255),
     Retailer VARCHAR(255),
     FigurePrice FLOAT,
@@ -30,7 +31,8 @@ CREATE TABLE IF NOT EXISTS figurine(
 );
 
 CREATE TABLE IF NOT EXISTS multiGames(
-    Game VARCHAR(255) PRIMARY KEY,
+    ID SERIAL PRIMARY KEY, 
+    Game VARCHAR(255),
     Year INT,
     Developer VARCHAR(255),
     Genre VARCHAR(255),
@@ -41,7 +43,8 @@ CREATE TABLE IF NOT EXISTS multiGames(
 );
 
 CREATE TABLE IF NOT EXISTS games(
-    Game VARCHAR(255) PRIMARY KEY,
+    ID SERIAL PRIMARY KEY, 
+    Game VARCHAR(255),
     Year INT,
     Developer VARCHAR(255),
     Genre VARCHAR(255),
@@ -51,7 +54,7 @@ CREATE TABLE IF NOT EXISTS games(
     Rating FLOAT,
     Favourite VARCHAR(255),
     Highlights VARCHAR(255)
-)
+);
 
 ALTER TABLE figurine RENAME COLUMN figureprice to figure_price;
 ALTER TABLE figurine RENAME COLUMN shippingprice to shipping_price;
@@ -65,3 +68,10 @@ ALTER TABLE visualnovel RENAME COLUMN genre2 to genre_2;
 ALTER TABLE visualnovel RENAME COLUMN fav1 to fav_1;
 ALTER TABLE visualnovel RENAME COLUMN fav2 to fav_2;
 ALTER TABLE visualnovel RENAME COLUMN fav3 to fav_3;
+
+CREATE TABLE IF NOT EXISTS kpop(
+	id SERIAL PRIMARY KEY,
+    Rank INT,
+    Name VARCHAR(255),
+    Type VARCHAR(255)
+);

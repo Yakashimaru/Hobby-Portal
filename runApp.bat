@@ -6,7 +6,7 @@ call activate
 
 REM run backend
 cd /d "%~dp0"
-start cmd /k py -m Backend.apis.figurine
+start cmd /k py -m Backend.apis.crud_apis
 
 REM run frontend
 cd /d "%~dp0Frontend\my-app"

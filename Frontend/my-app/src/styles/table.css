@@ -1,4 +1,4 @@
-html,
+/* html,
 body {
 	height: 100%;
 }
@@ -62,4 +62,8 @@ tbody {
 			}
 		}
 	}
-}
+} */
+
+table, th, td {
+	border: 1px solid black;
+  }
