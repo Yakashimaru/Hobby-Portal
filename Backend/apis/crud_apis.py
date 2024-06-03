@@ -10,6 +10,7 @@ from ..common.crud_database import get_database, post_database, put_database, de
 app = Flask(__name__)
 CORS(app)
 
+#returns the table name from the route path
 def get_table_name(route_path):
     if "/get" in route_path:
         return route_path.split("/get")[1]
@@ -20,7 +21,7 @@ def get_table_name(route_path):
     elif "/delete" in route_path:
         return route_path.split("/delete")[1]
     
-
+#GET request to get data from the database
 @app.route("/getGames", methods=['GET'])
 @app.route("/getMultigames", methods=['GET'])
 @app.route("/getGames", methods=['GET'])
@@ -34,8 +35,9 @@ def get_data():
     
     except Exception as e:
         return simple_exception(e)
-    
-    
+
+
+#POST request to add data to the database    
 @app.route("/addGames", methods=['POST'])
 @app.route("/addMultigames", methods=['POST'])
 @app.route("/addGames", methods=['POST'])
@@ -53,11 +55,11 @@ def addFigurine():
         except Exception as e:
             return simple_exception(e)
     else:
-        print("here")
         print(request.get_data())
         return json_exception(str(request.get_data()))
 
 
+#PUT request to update data in the database
 @app.route("/updateGames", methods=['PUT'])
 @app.route("/updateMultigames", methods=['PUT'])
 @app.route("/updateGames", methods=['PUT'])
@@ -77,6 +79,7 @@ def updateFigurine():
     else:
         return json_exception(str(request.get_data()))
 
+#DELETE request to delete data from the database
 @app.route("/deleteGames", methods=['DELETE'])
 @app.route("/deleteMultigames", methods=['DELETE'])
 @app.route("/deleteGames", methods=['DELETE'])
@@ -95,6 +98,7 @@ def deleteFigurine():
             return simple_exception(e)
     else:
         return json_exception(str(request.get_data()))
+
 
 if __name__ == '__main__':
     #app.run(host='0.0.0.0', port=5004, debug=True)

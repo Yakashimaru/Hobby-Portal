@@ -9,8 +9,11 @@ import {
 
 import './App.css';
 
+//Import pages here
 import Table from './pages/displayTable';
 import Home from './pages/home';
+import Vntable from './pages/visualNovel';
+
 
 function App() {
     useEffect(() => {
@@ -25,6 +28,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/home" element={<Home />} />
             <Route path="/displayTable/:table_name" element={<Table />} />
+            <Route path ="/visualNovel" element={<Vntable />} />
         </Routes>
     </Router>
 );
