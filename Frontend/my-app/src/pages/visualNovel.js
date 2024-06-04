@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import retrieveDatabase from "../common/retrieveDatabase";
 import editDatabase from "../common/editDatabase";
 import formatColumnName from "../common/formatColumnName";
+import formatUnderscoreName from "../common/formatUnderscoreName";
 import formatScrappedDate from "../common/formatScrappedDate";
 
 import Form from "../components/Form";
@@ -21,8 +22,8 @@ const Vntable = () => {
     // State to toggle column visibility
     const [showColumns, setShowColumns] = useState(false); 
     // Columns to be hidden/unhidden
-    const hiddenColumns = ["Year","Developer","Genre 1","Genre 2","Story","Renders","Animations","Scenes"]
-    const hiddenColumnsIndex = [1, 2, 3, 4, 5, 6, 7, 8];
+    //const hiddenColumns = ["Year","Developer","Genre 1","Genre 2","Story","Renders","Animations","Scenes"]
+    //const hiddenColumnsIndex = [1, 2, 3, 4, 5, 6, 7, 8];
     // Table Name
     const table_name = "VisualNovel";  
 
@@ -32,6 +33,14 @@ const Vntable = () => {
                 const url_path = `getVisualNovel`;
                 const data = await retrieveDatabase(url_path);
                 
+                // Exclude column 0 from columns
+                //const columns = data.columns.slice(1);
+
+                // Exclude column 0 from each row
+                //const rows = data.rows.map(row => row.slice(1));
+
+                // Set the modified tableData in the state
+                //setTableData({ columns, rows });
                 setTableData(data);
                 setLoading(false);
             } catch (error) {
@@ -121,7 +130,29 @@ const Vntable = () => {
                             <tr key={rowIndex}>
                                 {row.slice(1).map((cell, cellIndex) => (
                                     ((!showColumns && cellIndex > 0 && cellIndex < 9) ? null : (
-                                        <td key={cellIndex}>{cell}</td>
+                                        <td key={cellIndex}>
+                                            {/* Render image for specific columns */}
+                                            {(cellIndex === 0 ) &&
+                                            <div>
+                                                <img src={process.env.PUBLIC_URL + `assets/images/visual_novel/${formatUnderscoreName(row[1])}.png`} alt="" />
+                                                <br />
+                                                <span classname = "game_title">{cell}</span>
+                                            </div>
+                                            }
+                                            {(cellIndex >= 10 && cellIndex <= 12) &&
+                                                <div>
+                                                    <img src={process.env.PUBLIC_URL +`assets/images/visual_novel/${formatUnderscoreName(row[1] + " " +row[cellIndex + 1])}.png`} alt="" width="177" height="100"/>
+                                                    <br />
+                                                    <span classname = "favourites">{cell}</span>
+                                                </div>
+                                            }
+                                            {/* Render other cells */}
+                                            {(cellIndex !== 0 && !(cellIndex >= 10 && cellIndex <= 12)) &&
+                                                <div>
+                                                    {cell}
+                                                </div>
+                                            }
+                                        </td>
                                     ))
                                 ))}
                                 <td>
