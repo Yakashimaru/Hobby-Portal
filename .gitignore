@@ -2,4 +2,5 @@
 **/settings/
 Database/*.csv
 __pycache__
+Frontend/my-app/public/assets/
 
