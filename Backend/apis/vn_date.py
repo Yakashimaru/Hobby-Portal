@@ -14,11 +14,11 @@ from ..settings.user_agents import USER_AGENTS
 app = Flask(__name__)
 CORS(app)
 
-@app.route("/getVNDate", methods=['GET'])
+@app.route("/getVNDate", methods=['POST'])
 def get_last_updated():
-    headers = {
-        'User-Agent': random.choice(USER_AGENTS)
-    }
+    # headers = {
+    #     'User-Agent': random.choice(USER_AGENTS)
+    # }
 
     if request.is_json:
         try:
@@ -40,7 +40,11 @@ def get_last_updated():
                 
                 # Check if the span is found and return its content
                 if last_updated_span:
-                    return last_updated_span.get_text(strip=True)
+                    return jsonify({
+                        "code": 200,
+                        "message": "Success",
+                        "data": last_updated_span.get_text(strip=True)
+                    }), 200
                 
         except requests.exceptions.RequestException as e:
             return simple_exception(e)
@@ -49,5 +53,5 @@ def get_last_updated():
         return json_exception(str(request.get_data()))
 
 if __name__ == '__main__':
-    #app.run(host='0.0.0.0', port=5004, debug=True)
-    app.run(port = 5004, debug=True)
+    app.run(host='0.0.0.0', port=5005, debug=True)
+    #app.run(port = 5005, debug=True)

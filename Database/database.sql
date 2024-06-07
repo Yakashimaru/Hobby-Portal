@@ -90,43 +90,38 @@ ALTER TABLE visualnovel ADD PRIMARY KEY (game);
 ALTER TABLE visualnovel ADD CONSTRAINT unique_id UNIQUE (id);
 
 CREATE TABLE IF NOT EXISTS uservisualnovel(
-	id INT PRIMARY KEY,
+	id INT,
+	game varchar(255) PRIMARY KEY,
 	last_played DATE,
 	last_updated DATE,
-	FOREIGN KEY (id) REFERENCES visualnovel(id)
+    status varchar(50),
+	FOREIGN KEY (id) REFERENCES visualnovel(id),
+	FOREIGN KEY (game) REFERENCES visualnovel(game)
 );
 
-INSERT INTO uservisualnovel (id, last_played)
-VALUES 
-    (1, CURRENT_DATE), 
-    (2, CURRENT_DATE), 
-    (3, CURRENT_DATE), 
-    (4, CURRENT_DATE), 
-    (5, CURRENT_DATE), 
-    (6, CURRENT_DATE), 
-    (7, CURRENT_DATE), 
-    (8, CURRENT_DATE), 
-    (9, CURRENT_DATE), 
-    (10, CURRENT_DATE), 
-    (11, CURRENT_DATE), 
-    (12, CURRENT_DATE), 
-    (13, CURRENT_DATE), 
-    (14, CURRENT_DATE), 
-    (15, CURRENT_DATE), 
-    (16, CURRENT_DATE), 
-    (17, CURRENT_DATE), 
-    (18, CURRENT_DATE), 
-    (19, CURRENT_DATE), 
-    (20, CURRENT_DATE), 
-    (21, CURRENT_DATE), 
-    (22, CURRENT_DATE), 
-    (23, CURRENT_DATE), 
-    (24, CURRENT_DATE), 
-    (25, CURRENT_DATE), 
-    (26, CURRENT_DATE), 
-    (27, CURRENT_DATE), 
-    (28, CURRENT_DATE), 
-    (29, CURRENT_DATE), 
-    (30, CURRENT_DATE), 
-    (31, CURRENT_DATE), 
-    (32, CURRENT_DATE);
+-- Populate the Foreign Keys
+INSERT INTO uservisualnovel (id,game)
+SELECT id, game FROM visualnovel;
+
+-- Populate data columns
+UPDATE uservisualnovel
+SET last_played = '2024-06-03';
+
+-- Add a new column to the visualnovel table
+CREATE OR REPLACE FUNCTION set_id_from_visualnovel()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO uservisualnovel (id,game, last_played) values (new.id,new.game, CURRENT_DATE);
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create a trigger to set the id value
+CREATE TRIGGER set_id_value_trigger
+AFTER INSERT ON visualnovel
+FOR EACH ROW
+EXECUTE FUNCTION set_id_from_visualnovel();
+
+-- To reset
+-- ALTER SEQUENCE visualnovel_id_seq RESTART WITH 33
+

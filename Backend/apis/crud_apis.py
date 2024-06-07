@@ -4,11 +4,13 @@ from flask_cors import CORS
 import os, sys
 
 from ..common.handle_exceptions import simple_exception, json_exception
-from ..common.crud_database import get_database, post_database, put_database, delete_database
-
+from ..common.database_functions import get_database, post_database, put_database, delete_database, get_database_inner_join
+from ..common.data_functions import split_data
 
 app = Flask(__name__)
 CORS(app)
+
+vn_table_order = "visualnovel.id , visualnovel.game, visualnovel.year, developer, genre_1, genre_2, story, renders, animations, scenes, rating, fav_1, fav_2, fav_3, TO_CHAR(last_played, 'dd/mm/yyyy') as last_played, TO_CHAR(last_updated, 'dd/mm/yyyy') as last_updated, status"
 
 #returns the table name from the route path
 def get_table_name(route_path):
@@ -31,6 +33,17 @@ def get_table_name(route_path):
 def get_data():
     try:
         table_name = get_table_name(request.path)
+
+        # For visual novel table
+        if table_name == "VisualNovel":
+            return get_database_inner_join(
+                table_name, 
+                "uservisualnovel", 
+                "visualnovel.id = uservisualnovel.id", 
+                vn_table_order,
+                "ORDER BY status DESC, rating DESC")
+        
+        # For other tables
         return get_database(table_name)
     
     except Exception as e:
@@ -50,6 +63,12 @@ def addFigurine():
             data = request.get_json()
             table_name = get_table_name(request.path)
 
+            # For visual novel table
+            if table_name == "VisualNovel":
+                data1, data2 = split_data(data, 3)
+                if (post_database(table_name, data1)[1] == 200):
+                    return post_database("uservisualnovel", data2)
+
             return post_database(table_name, data)
 
         except Exception as e:
@@ -63,7 +82,8 @@ def addFigurine():
 @app.route("/updateGames", methods=['PUT'])
 @app.route("/updateMultigames", methods=['PUT'])
 @app.route("/updateGames", methods=['PUT'])
-@app.route("/updateVisualNovel", methods=['PUT'])    
+@app.route("/updateVisualNovel", methods=['PUT'])   
+@app.route("/updateUserVisualNovel", methods=['PUT'])    
 @app.route("/updateKpop", methods=['PUT'])    
 @app.route("/updateFigurine", methods=['PUT'])
 def updateFigurine():
@@ -72,7 +92,7 @@ def updateFigurine():
             data = request.get_json()
             table_name = get_table_name(request.path)
 
-            return put_database(table_name, data)
+            return put_database(table_name, data, "game")
 
         except Exception as e:
             return simple_exception(e)
@@ -101,5 +121,5 @@ def deleteFigurine():
 
 
 if __name__ == '__main__':
-    #app.run(host='0.0.0.0', port=5004, debug=True)
-    app.run(port = 5004, debug=True)
+    app.run(host='0.0.0.0', port=5004, debug=True)
+    #app.run(port = 5004, debug=True)
