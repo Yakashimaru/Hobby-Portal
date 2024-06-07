@@ -16,9 +16,9 @@ CORS(app)
 
 @app.route("/getVNDate", methods=['POST'])
 def get_last_updated():
-    # headers = {
-    #     'User-Agent': random.choice(USER_AGENTS)
-    # }
+    headers = {
+        'User-Agent': random.choice(USER_AGENTS)
+    }
 
     if request.is_json:
         try:
