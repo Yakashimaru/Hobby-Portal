@@ -41,7 +41,7 @@ def get_data():
                 "uservisualnovel", 
                 "visualnovel.id = uservisualnovel.id", 
                 vn_table_order,
-                "ORDER BY status DESC, rating DESC")
+                "ORDER BY status DESC, rating DESC NULLS LAST")
         
         # For other tables
         return get_database(table_name)
