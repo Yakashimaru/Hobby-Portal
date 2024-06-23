@@ -1,0 +1,73 @@
+.game_title_cell {
+    display:'flex';
+    align-items: center;
+    justify-content: center;
+}
+
+.game_title_cell{
+    width: 177px;
+    text-align: center;
+}
+
+.game_title {
+    font-size: 1em;
+    font-weight: bold;
+    display: flex;
+    flex-direction: column;
+    align-items: center; 
+    
+}
+
+.game_image_jpg{
+    /* width:177px;
+    height:100px; */
+    width: 100%;
+    aspect-ratio: 92/43;
+}
+
+.game_image_png{
+    width: 100%;
+    aspect-ratio: 16/9;
+}
+
+.favourite-image {
+    width: 100%;
+    aspect-ratio: 16/9;
+}
+
+.favourite-cell{
+    width:177px;
+    text-align: center
+}
+
+.text{
+    text-align: center
+}
+
+.column-name{
+    margin-left: 0.5em;
+    margin-right: 0.5em;
+}
+
+.games-updated-container {
+    display: flex;
+    flex-direction: column;
+    align-items: left; /* Centers content horizontally */
+    margin: 20px 0; /* Adjust the margin as needed */
+}
+
+.game-image-container {
+    display: inline-block;
+    margin: 5px;
+    border-radius: 50%;
+    overflow: hidden;
+    width: 60px; /* Adjust the width as needed */
+    height: 60px; /* Adjust the height as needed */
+    border: 2px solid #ccc; /* Optional: Add a border around the circle */
+}
+
+.game-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* This ensures the image covers the entire container */
+}

@@ -1,10 +1,12 @@
+# Functions to interact with the database
+
 from flask import Flask, request, jsonify
 
 from ..settings.database_connection import connect_to_database
 from ..common.handle_exceptions import internal_error_exception
 from ..common.data_functions import convert_keys_values_to_string
 
-
+##### GET function #####
 def get_database(table_name):
     try:
         conn = connect_to_database()
@@ -27,8 +29,9 @@ def get_database(table_name):
 
     except Exception as e:
         return internal_error_exception(e)
-    
 
+
+##### GET function with INNER JOIN #####
 def get_database_inner_join(table_name1, table_name2, join_clause ,order = "*", sort_by_clause = ""):
     try:
         conn = connect_to_database()
@@ -52,7 +55,7 @@ def get_database_inner_join(table_name1, table_name2, join_clause ,order = "*", 
     except Exception as e:
         return internal_error_exception(e)
     
-
+##### POST function #####
 def post_database(table_name, data):
     try:
         conn = connect_to_database()
@@ -88,7 +91,7 @@ def post_database(table_name, data):
     except Exception as e:
         return internal_error_exception(e)
 
-
+##### PUT function #####
 def put_database(table_name, data, condition_column):
     try:
         conn = connect_to_database()
@@ -117,7 +120,7 @@ def put_database(table_name, data, condition_column):
     except Exception as e:
         return internal_error_exception(e)
 
-
+##### DELETE function #####
 def delete_database(table_name, data):
     try:
         conn = connect_to_database()

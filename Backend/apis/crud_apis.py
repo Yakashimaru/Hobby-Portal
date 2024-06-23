@@ -55,6 +55,7 @@ def get_data():
 @app.route("/addMultigames", methods=['POST'])
 @app.route("/addGames", methods=['POST'])
 @app.route("/addVisualNovel", methods=['POST'])    
+@app.route("/addUserVisualNovel", methods=['POST'])    
 @app.route("/addKpop", methods=['POST'])    
 @app.route("/addFigurine", methods=['POST'])
 def addFigurine():
@@ -62,12 +63,6 @@ def addFigurine():
         try:
             data = request.get_json()
             table_name = get_table_name(request.path)
-
-            # For visual novel table
-            if table_name == "VisualNovel":
-                data1, data2 = split_data(data, 3)
-                if (post_database(table_name, data1)[1] == 200):
-                    return post_database("uservisualnovel", data2)
 
             return post_database(table_name, data)
 
@@ -91,8 +86,12 @@ def updateFigurine():
         try:
             data = request.get_json()
             table_name = get_table_name(request.path)
-
-            return put_database(table_name, data, "game")
+            
+            # If the data has an id field, update by id
+            if ("id" in data):
+                return put_database(table_name, data, "id")
+            else:
+                return put_database(table_name, data, "game")
 
         except Exception as e:
             return simple_exception(e)

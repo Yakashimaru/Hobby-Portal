@@ -1,3 +1,6 @@
+# Functions to manipulate data
+
+## To split data into two sets via a specified cutoff
 def split_data(data,cutoff):
     keys = list(data.keys())
     values = list(data.values())
@@ -15,6 +18,7 @@ def split_data(data,cutoff):
 
     return data_set_1, data_set_2
 
+## To convert keys and values into strings
 def convert_keys_values_to_string(keys, values):
     keys = ", ".join(map(str, keys))
     values = ", ".join(map(str, values))
