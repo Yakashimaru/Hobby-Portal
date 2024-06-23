@@ -84,20 +84,36 @@ const Vntable = () => {
             return new Date(year, month - 1, day);
         };
 
-        if (tableData.rows.length > 0) {
-            let games = [];
-            tableData.rows.forEach((row) => {
-                const last_played_date = parseDate(row[14]);
-                const last_updated_date = parseDate(row[15]);
-                if (last_updated_date > last_played_date) {
-                    const jpgUrl = `${process.env.PUBLIC_URL}/assets/images/visual_novel/${formatUnderscoreName(row[1])}.jpg`;
-                    const pngUrl = `${process.env.PUBLIC_URL}/assets/images/visual_novel/${formatUnderscoreName(row[1])}.png`;
-                    const imgUrl = jpgUrl || pngUrl; // Use jpgUrl if it exists, otherwise use pngUrl
-                    games.push(imgUrl);
-                }
+        // To check if the an image url exists
+        const checkImage = (url) => {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => resolve(true);
+                img.onerror = () => resolve(false);
+                img.src = url;
             });
+        };
+
+        const updateGamesToPlayStatus = async () => {
+            if (tableData.rows.length > 0) {
+                let games = [];
+                for (const row of tableData.rows) {
+                    const last_played_date = parseDate(row[14]);
+                    const last_updated_date = parseDate(row[15]);
+                    if (last_updated_date > last_played_date) {
+                        const jpgUrl = `${process.env.PUBLIC_URL}/assets/images/visual_novel/${formatUnderscoreName(row[1])}.jpg`;
+                        const pngUrl = `${process.env.PUBLIC_URL}/assets/images/visual_novel/${formatUnderscoreName(row[1])}.png`;
+                        // const imgUrl = jpgUrl || pngUrl; // Use jpgUrl if it exists, otherwise use pngUrl
+                        const jpgExists = await checkImage(jpgUrl);
+                        const imgUrl = jpgExists ? jpgUrl : pngUrl;
+                        games.push(imgUrl);
+                    }
+                }
             setGamesToPlay(games);
-        }
+            }
+        };
+
+        updateGamesToPlayStatus();
     }, [tableData]);
 
     //Form functions
@@ -162,9 +178,9 @@ const Vntable = () => {
         try{
             let response_vn = await fetchRequest(path_vn, "POST", vnTableData);
             if (response_vn["code"] == "200"){
-                console.log(path_uservn, uservnTableData)
+                //console.log(path_uservn, uservnTableData)
                 let response_uvn = await fetchRequest(path_uservn, "PUT", uservnTableData);
-                console.log("herhere",response_uvn)
+                //console.log("herhere",response_uvn)
                 if (response_uvn["code"] == "201"){
                     console.log(response_uvn)
                     setShowEditForm(false);
@@ -195,7 +211,7 @@ const Vntable = () => {
                     data_updated[value] = "Success";
 
                     //Write to database
-                    let date = response_data["data"];
+                    let date = response_data["data"]["last_updated"];
                     let data_formatted = formatScrappedDate(date);
                     let path = initial_url + "updateUserVisualNovel";
                     let data = {
@@ -415,11 +431,6 @@ const Vntable = () => {
                             const last_played_date = parseDate(row[14]);
                             const last_updated_date = parseDate(row[15]);
                             const color_date = last_updated_date > last_played_date;
-
-                            // // Check if the game should be added to gamesToPlay
-                            // if (last_updated_date > last_played_date) {
-                            //     setGamesToPlay((prevGames) => [...prevGames, row[1]]); // Assuming row[1] contains game name
-                            // }
 
                         return (
                             <tr key={rowIndex}>

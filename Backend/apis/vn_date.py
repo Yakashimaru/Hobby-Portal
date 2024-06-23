@@ -9,6 +9,9 @@ import requests
 from bs4 import BeautifulSoup
 import time
 import random
+import re
+
+# User agents
 from ..settings.user_agents import USER_AGENTS
 
 app = Flask(__name__)
@@ -22,11 +25,19 @@ def get_last_updated():
 
     if request.is_json:
         try:
-            # Sleep for a random interval to avoid rate limiting
-            time.sleep(random.uniform(1, 5))
-
             data = request.get_json()
             url = data['url']
+
+            try:
+                sleep_low = data['limiter_low']
+                sleep_high = data['limiter_high']
+            except:
+                sleep_low = 1
+                sleep_high = 5
+
+            # Sleep for a random interval to avoid rate limiting
+            time.sleep(random.uniform(sleep_low, sleep_high))
+
             # Send a GET request to the URL
             response = requests.get(url)
             
@@ -37,13 +48,59 @@ def get_last_updated():
                 
                 # Find the span with the specific class
                 last_updated_span = soup.find('span', class_='meta-item last-updated')
+
+                # Find the h1 with the specific class
+                post_title_h1 = soup.find('h1', class_='post-title entry-title')
                 
-                # Check if the span is found and return its content
-                if last_updated_span:
+                # Check if the span and h1 are found and return their content
+                if last_updated_span and post_title_h1:
+                    last_updated = last_updated_span.get_text(strip=True)
+                    post_title = post_title_h1.get_text(strip=True)
+
+                    # Use regex to parse the post title
+                    match = re.match(r'^(.*?) \[(.*?)\] \[(.*?)\]$', post_title)
+                    if match:
+                        game_name = match.group(1)
+                        ver_number = match.group(2)
+                        developer = match.group(3)
+                    else:
+                        game_name = None
+                        ver_number = None
+                        developer = None
+
+                    # Return if both data are found
                     return jsonify({
                         "code": 200,
                         "message": "Success",
-                        "data": last_updated_span.get_text(strip=True)
+                        "data": {
+                            "last_updated": last_updated,
+                            "game": game_name,
+                            "version": ver_number,
+                            "developer": developer
+                        }
+                    }), 200
+                # If only the last updated date is found, return the last updated date
+                elif last_updated_span:
+                    return jsonify({
+                        "code": 200,
+                        "message": "Success",
+                        "data": {
+                            "last_updated": last_updated_span.get_text(strip=True),
+                            "game": None,
+                            "version": None,
+                            "developer": None
+                        }
+                    }), 200
+                else:
+                    return jsonify({
+                        "code": 200,
+                        "message": "No entry found",
+                        "data": {
+                            "last_updated": None,
+                            "game": None,
+                            "version": None,
+                            "developer": None
+                        }
                     }), 200
                 
         except requests.exceptions.RequestException as e:
