@@ -4,7 +4,7 @@ from flask_cors import CORS
 
 from ..common.handle_exceptions import simple_exception, json_exception
 
-#for scrapping
+# Libraries for scrapping
 import requests
 from bs4 import BeautifulSoup
 import time

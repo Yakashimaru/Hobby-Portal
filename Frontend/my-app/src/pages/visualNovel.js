@@ -1,15 +1,20 @@
 import React, { useState, useEffect } from "react";
 
+// From common folder
 import retrieveDatabase from "../common/retrieveDatabase";
 import editDatabase from "../common/editDatabase";
 import formatColumnName from "../common/formatColumnName";
 import formatUnderscoreName from "../common/formatUnderscoreName";
 import formatScrappedDate from "../common/formatScrappedDate";
+import fetchRequest from "../common/fetchRequest";
 
+// From components folder
 import Form from "../components/Form";
+import UpdateForm from "../components/UpdateForm";
 
 import "../styles/table.css";
 import "../styles/form.css";
+import "../styles/visualNovel.css";
 import { api_paths, initial_url } from "../settings/databaseSettings";
 import { vn_update_url, initial_vn_url } from "../settings/vnWebsite";
 
@@ -22,17 +27,25 @@ const Vntable = () => {
     const [showForm, setShowForm] = useState(false);
     // State to toggle column visibility
     const [showColumns, setShowColumns] = useState(false); 
-    // Columns to be hidden/unhidden
-    //const hiddenColumns = ["Year","Developer","Genre 1","Genre 2","Story","Renders","Animations","Scenes"]
-    //const hiddenColumnsIndex = [1, 2, 3, 4, 5, 6, 7, 8];
     // Table Name
     const table_name = "VisualNovel";  
     const [sortField, setSortField] = useState("");
     const [order, setOrder] = useState("asc");
     // For API update
     const [filteredData, setFilteredData] = useState([]);
+    // For edit form
+    const [rowDataForEdit, setRowDataForEdit] = useState(null);
+    const [showEditForm, setShowEditForm] = useState(false);
+    const [imageClass, setImageClass] = useState("game_image");
+    const [gamesUpdated, setGamesUpdated] = useState([]);
+    const [img, setImg] = useState("");
+    const [gamesToPlay, setGamesToPlay] = useState([]);
+
 
     useEffect(() => {
+        
+        
+
         const fetchData = async () => {
             try {
                 const url_path = `getVisualNovel`;
@@ -54,13 +67,38 @@ const Vntable = () => {
         };
     
         fetchData(); // Fetch data immediately on component mount
-    
+        
         // Clear tableData state when table_name changes
         return () => {
             //console.log("Clearing tableData state");
             setTableData({ columns: [], rows: [] });
         };
     }, [table_name]);
+
+    useEffect(() => {
+        const parseDate = (dateString) => {
+            if (!dateString) {
+                return null;
+            }
+            const [day, month, year] = dateString.split('/').map(Number);
+            return new Date(year, month - 1, day);
+        };
+
+        if (tableData.rows.length > 0) {
+            let games = [];
+            tableData.rows.forEach((row) => {
+                const last_played_date = parseDate(row[14]);
+                const last_updated_date = parseDate(row[15]);
+                if (last_updated_date > last_played_date) {
+                    const jpgUrl = `${process.env.PUBLIC_URL}/assets/images/visual_novel/${formatUnderscoreName(row[1])}.jpg`;
+                    const pngUrl = `${process.env.PUBLIC_URL}/assets/images/visual_novel/${formatUnderscoreName(row[1])}.png`;
+                    const imgUrl = jpgUrl || pngUrl; // Use jpgUrl if it exists, otherwise use pngUrl
+                    games.push(imgUrl);
+                }
+            });
+            setGamesToPlay(games);
+        }
+    }, [tableData]);
 
     //Form functions
     const handleNewEntryClick = () => {
@@ -71,27 +109,73 @@ const Vntable = () => {
         setShowForm(false);
     };
 
-    const handleSubmit = (formData) => {
-        //console.log(table_name)
-        let key = "C" + table_name
-        const path = initial_url + api_paths[key];
-        console.log(path);
-        fetch(path, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(formData),
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log('Response from server:', data);
-            setShowForm(false);
-        })
-        .catch(error => {
-            console.error('Error adding new entry:', error);
-        });
-    };
+    // const handleSubmit = (formData) => {
+    //     // let key = "C" + table_name
+    //     const path = initial_url + "addvisualnovel";
+
+    //     fetch(path, {
+    //         method: 'POST',
+    //         headers: {
+    //             'Content-Type': 'application/json',
+    //         },
+    //         body: JSON.stringify(formData),
+    //     })
+    //     .then(response => response.json())
+    //     .then(data => {
+    //         console.log('Response from server:', data);
+    //         setShowForm(false);
+    //         window.location.reload(); // Refresh the page after form submission
+    //     })
+    //     .catch(error => {
+    //         console.error('Error adding new entry:', error);
+    //     });
+    // };
+
+    const handleSubmit = async (newData) => {
+        const userVisualNovelKeys = ["id","last_played", "last_updated", "status"];
+        
+        const path_vn = initial_url + "addVisualNovel";
+        const path_uservn = initial_url + "updateUserVisualNovel";
+        const vnTableData = {};
+        const uservnTableData = {};
+
+        // and the last 3 key-value pairs to secondTableData
+        let index = 0;
+        for (const [key, value] of Object.entries(newData)) {
+            if (key == 'id') {
+                // If "id" is present, include it in both tables
+                vnTableData[key] = value;
+                uservnTableData[key] = value;
+            }
+            else if (key == 'game') {
+                // If "id" is present, include it in both tables
+                vnTableData[key] = value;
+                uservnTableData[key] = value;
+            }
+            else if (userVisualNovelKeys.includes(key)) {
+                uservnTableData[key] = value; 
+            } else {
+                vnTableData[key] = value; 
+            }
+        }
+
+        try{
+            let response_vn = await fetchRequest(path_vn, "POST", vnTableData);
+            if (response_vn["code"] == "200"){
+                console.log(path_uservn, uservnTableData)
+                let response_uvn = await fetchRequest(path_uservn, "PUT", uservnTableData);
+                console.log("herhere",response_uvn)
+                if (response_uvn["code"] == "201"){
+                    console.log(response_uvn)
+                    setShowEditForm(false);
+                    window.location.reload(); // Refresh the page after form submission
+                }
+            }
+        }
+        catch (error) {
+            console.error('Error updating entry:', error);
+        }
+    }
 
     const getColumnValuesByCondition = (data, targetColumnIndex, conditionColumnIndex, conditionValue) => {
         return data
@@ -194,11 +278,101 @@ const Vntable = () => {
         setOrder(sortOrder);
         handleSorting(columnName, sortOrder);
     };
+
+    // Function to parse the date string in MM/DD/YYYY format
+    const parseDate = (dateString) => {
+        if (!dateString) {
+            return null;
+        }
+        const [day, month, year] = dateString.split('/').map(Number);
+        return new Date(year, month - 1, day);
+    };
+
+    // Function to handle edit button click
+    const handleEdit = async (row) => {
+        const jpgUrl = `${process.env.PUBLIC_URL}/assets/images/visual_novel/${formatUnderscoreName(row[1])}.jpg`;
+        const pngUrl = `${process.env.PUBLIC_URL}/assets/images/visual_novel/${formatUnderscoreName(row[1])}.png`;
+
+        const jpgExists = await checkImage(jpgUrl);
+        const imgUrl = jpgExists ? jpgUrl : pngUrl;
+
+        setImg(imgUrl);
+
+
+        const dataForEdit = tableData.columns.reduce((acc, column, index) => {
+            acc[column] = row[index];
+            return acc;
+        }, {});
+        setRowDataForEdit(dataForEdit);
+        setShowEditForm(true);
+    };
+
+    const checkImage = (url) => {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => resolve(true);
+            img.onerror = () => resolve(false);
+            img.src = url;
+        });
+    };
+    
+
+    const handleCloseEditForm = () => {
+        setShowEditForm(false);
+    };
+
+    // Function to handle form submission for editing
+    const handleEditSubmit = async (updatedData) => {
+        // Send PUT request with updated data
+        //console.log('Updated data:', updatedData);
+        // Logic for sending PUT request...
+        const userVisualNovelKeys = ["id","last_played", "last_updated", "status"];
+        
+        const path_vn = initial_url + "updateVisualNovel";
+        const path_uservn = initial_url + "updateUserVisualNovel";
+        const vnTableData = {};
+        const uservnTableData = {};
+
+        // and the last 3 key-value pairs to secondTableData
+        let index = 0;
+        for (const [key, value] of Object.entries(updatedData)) {
+            if (key === 'id') {
+                // If "id" is present, include it in both tables
+                vnTableData[key] = value;
+                uservnTableData[key] = value;
+            }
+            else if (userVisualNovelKeys.includes(key)) {
+                uservnTableData[key] = value; 
+            } else {
+                vnTableData[key] = value; 
+            }
+        }
+
+        try{
+            let response_vn = await fetchRequest(path_vn, "PUT", vnTableData);
+            if (response_vn["code"] == "201"){
+                console.log(path_uservn, uservnTableData)
+                let response_uvn = await fetchRequest(path_uservn, "PUT", uservnTableData);
+                console.log("herhere",response_uvn)
+                if (response_uvn["code"] == "201"){
+                    console.log(response_uvn)
+                    setShowEditForm(false);
+                    window.location.reload(); // Refresh the page after form submission
+                }
+            }
+        }
+        catch (error) {
+            console.error('Error updating entry:', error);
+        }
+        
+        //setShowEditForm(false); // Close the edit form after submission
+    };
     
     //Display loading if data is not yet fetched
     if (loading){
         return <div>Loading...</div>;
     }
+
 
     //Return the table
     return (
@@ -208,6 +382,16 @@ const Vntable = () => {
             {showColumns ? 'Hide Information' : 'Show More Information'}
         </button>
         <button className="getUpdatesButton" onClick={handleUpdatesClick}>Get Updates</button>
+        <div className="games-updated-container">
+            Games updated: 
+            <span className="games-updated">
+                {gamesToPlay.map((imgUrl, index) => (
+                    <span key={index} className="game-image-container">
+                        <img src={imgUrl} alt={`Game ${index}`} className="game-image" />
+                    </span>
+                ))}
+            </span>
+        </div>
 
             <div className="Table">
                 <table>
@@ -215,43 +399,85 @@ const Vntable = () => {
                         <tr>
                             {tableData.columns.slice(1).map((columnName, columnIndex) => (
                                 ((!showColumns && columnIndex > 0 && columnIndex < 9) ? null : (
-                                    <th key={columnName} onClick={() => handleSortingChange(columnName)}>{formatColumnName(columnName)}</th>
+                                    <th key={columnName} onClick={() => handleSortingChange(columnName)}>
+                                        <span className="column-name">
+                                            {formatColumnName(columnName)}
+                                        </span>
+                                    </th>
                                 ))
                             ))}
                             <th></th>
                         </tr>
                     </thead>
                     <tbody>
-                        {tableData.rows.map((row, rowIndex) => (
+                        {tableData.rows.map((row, rowIndex) => {
+                            
+                            const last_played_date = parseDate(row[14]);
+                            const last_updated_date = parseDate(row[15]);
+                            const color_date = last_updated_date > last_played_date;
+
+                            // // Check if the game should be added to gamesToPlay
+                            // if (last_updated_date > last_played_date) {
+                            //     setGamesToPlay((prevGames) => [...prevGames, row[1]]); // Assuming row[1] contains game name
+                            // }
+
+                        return (
                             <tr key={rowIndex}>
                                 {row.slice(1).map((cell, cellIndex) => (
                                     ((!showColumns && cellIndex > 0 && cellIndex < 9) ? null : (
-                                        <td key={cellIndex}>
+                                        <td key={cellIndex} style = {{
+                                            backgroundColor: 
+                                                (cellIndex === 14 && color_date) ? 'green' : 'inherit'                                            
+                                        }}>
                                             {/* Render image for specific columns */}
                                             {(cellIndex === 0 ) &&
-                                            <div>
+                                            <div className = "game_title_cell">
                                                 <img src={process.env.PUBLIC_URL + 
-                                                    `assets/images/visual_novel/${formatUnderscoreName(row[1])}.png`} 
-                                                    alt="" />
+                                                    `assets/images/visual_novel/${formatUnderscoreName(row[1])}.jpg`} 
+                                                    className="game_image_jpg"
+
+                                                    onError={({ currentTarget }) => {
+                                                        if (currentTarget.src.includes("jpg")){
+                                                            currentTarget.src = process.env.PUBLIC_URL + "assets/images/visual_novel/" + formatUnderscoreName(row[1]) + ".png";
+                                                            currentTarget.className = "game_image_png";
+                                                        }  else {
+                                                            currentTarget.src=" ";
+                                                            currentTarget.onerror = null; // prevents looping
+                                                        }
+                                                        
+                                                    }}
+                                                   
+                                                    alt="" 
+                                                    />
                                                 <br />
                                                 <span className = "game_title">{cell}</span>
                                             </div>
                                             }
                                             {(cellIndex >= 10 && cellIndex <= 12) &&
-                                                <div>
+                                                //<div className={`favourite-image ${imageLoadError ? '' : 'error'}`}>
+                                                <div className="favourite-cell">
                                                     <img src={process.env.PUBLIC_URL +
                                                         `assets/images/visual_novel/${formatUnderscoreName(row[1] + 
                                                         " " +
                                                         row[cellIndex + 1])}.png`} 
+
+                                                        onError={({ currentTarget }) => {
+                                                            currentTarget.onerror = null; // prevents looping
+                                                            currentTarget.src=" ";
+                                                        }}
+
+                                                        className="favourite-image"
+
                                                         alt="" 
-                                                        width="177" height="100"/>
+                                                        
+                                                        />
                                                     <br />
-                                                    <span className = "favourites">{cell}</span>
+                                                    <span className = "text">{cell}</span>
                                                 </div>
                                             }
                                             {/* Render other cells */}
                                             {(cellIndex !== 0 && !(cellIndex >= 10 && cellIndex <= 12)) &&
-                                                <div>
+                                                <div className = "text">
                                                     {cell}
                                                 </div>
                                             }
@@ -259,13 +485,24 @@ const Vntable = () => {
                                     ))
                                 ))}
                                 <td>
-                                    <button onClick={() => editDatabase(row)}>Edit</button>
+                                    <button onClick={() => handleEdit(row)}>Edit</button>
                                 </td>
                             </tr>
-                        ))}
+                        )})}
                     </tbody>
                 </table>
             </div>
+            {/* Edit form */}
+            {showEditForm && rowDataForEdit && (
+                <UpdateForm
+                    img = {img}
+                    initialValues={rowDataForEdit} // Pass row data to populate the form fields
+                    columns={tableData.columns}
+                    showForm={setShowEditForm}
+                    onSubmit={handleEditSubmit} // Handle form submission for editing
+                    onCloseForm={handleCloseEditForm}
+                />
+            )}
             <Form
                 table_name={table_name}
                 columns={tableData.columns}

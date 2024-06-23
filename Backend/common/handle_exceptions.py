@@ -1,3 +1,5 @@
+# This file contains functions to handle exceptions in the application
+
 import sys, os
 from flask import jsonify
 
