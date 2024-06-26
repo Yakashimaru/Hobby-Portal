@@ -80,16 +80,7 @@
     justify-content: center;
 }
 
-/* .img-png {
-    width: 650px;
-    aspect-ratio: 16/9;
-}
-
-.img-jpg{
-    width:650px;
-    aspect-ratio: 92/43;
-} */
-
+/* Images */
 .img-png, .img-jpg {
     width: 100%; /* Make the images responsive */
     max-width: 650px; /* Limit the max-width to maintain aspect ratio */
@@ -109,3 +100,4 @@
     cursor: pointer;
     border-radius: 4px;
 }
+

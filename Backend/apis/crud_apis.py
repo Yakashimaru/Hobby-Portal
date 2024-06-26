@@ -10,7 +10,7 @@ from ..common.data_functions import split_data
 app = Flask(__name__)
 CORS(app)
 
-vn_table_order = "visualnovel.id , visualnovel.game, visualnovel.year, developer, genre_1, genre_2, story, renders, animations, scenes, rating, fav_1, fav_2, fav_3, TO_CHAR(last_played, 'dd/mm/yyyy') as last_played, TO_CHAR(last_updated, 'dd/mm/yyyy') as last_updated, status"
+vn_table_order = "visualnovel.id , visualnovel.game, visualnovel.year, developer, genre_1, genre_2, story, renders, animations, scenes, rating, fav_1, fav_2, fav_3, TO_CHAR(last_played, 'dd/mm/yyyy') as last_played, TO_CHAR(last_updated, 'dd/mm/yyyy') as last_updated, status, last_played_ver, last_updated_ver"
 
 #returns the table name from the route path
 def get_table_name(route_path):

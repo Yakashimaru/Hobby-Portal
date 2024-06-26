@@ -1,4 +1,8 @@
 // Simple function to handle all fetch requests in the application
+// Path -> URL to fetch data from
+// Method -> GET, POST, PUT, DELETE
+// Data -> Data to send in the request
+// Headers -> Headers to send in the request
 
 const fetchRequest = async (
     path, 
