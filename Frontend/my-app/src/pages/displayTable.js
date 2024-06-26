@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 
 import retrieveDatabase from "../common/retrieveDatabase";
-import editDatabase from "../common/editDatabase";
 import formatColumnName from "../common/formatColumnName";
 
 import Form from "../components/Form";
@@ -103,7 +102,7 @@ const Table = () => {
                                     <td >{cell}</td>
                                 ))}
                                 <td>
-                                    <button onClick={() => editDatabase(row)}>Edit</button>
+                                    <button onClick={() => console.log(row)}>Edit</button>
                                 </td>
                             </tr>
                         ))}

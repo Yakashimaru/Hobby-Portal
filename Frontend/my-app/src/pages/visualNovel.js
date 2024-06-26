@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 
 // From common folder
 import retrieveDatabase from "../common/retrieveDatabase";
-import editDatabase from "../common/editDatabase";
 import formatColumnName from "../common/formatColumnName";
 import formatUnderscoreName from "../common/formatUnderscoreName";
 import formatScrappedDate from "../common/formatScrappedDate";
@@ -11,24 +10,30 @@ import fetchRequest from "../common/fetchRequest";
 // From components folder
 import Form from "../components/Form";
 import UpdateForm from "../components/UpdateForm";
+import Spinner from "../components/Spinner";
+import RefreshButton from "../components/RefreshButton";
 
+// From styles folder
 import "../styles/table.css";
 import "../styles/form.css";
 import "../styles/visualNovel.css";
+
+// From settings folder
 import { api_paths, initial_url } from "../settings/databaseSettings";
 import { vn_update_url, initial_vn_url } from "../settings/vnWebsite";
+
 
 const Vntable = () => {
     // State to store the table data
     const [tableData, setTableData] = useState({ columns: [], rows: [] });
     // Display loading if data is not yet fetched
     const [loading, setLoading] = useState(true);
+    // Loading state for get updates
+    const [updating, setUpdating] = useState(false);
     // Form state
     const [showForm, setShowForm] = useState(false);
     // State to toggle column visibility
     const [showColumns, setShowColumns] = useState(false); 
-    // Table Name
-    const table_name = "VisualNovel";  
     const [sortField, setSortField] = useState("");
     const [order, setOrder] = useState("asc");
     // For API update
@@ -41,24 +46,15 @@ const Vntable = () => {
     const [img, setImg] = useState("");
     const [gamesToPlay, setGamesToPlay] = useState([]);
 
+    // Variables
+    const table_name = "VisualNovel";  
 
     useEffect(() => {
-        
-        
-
         const fetchData = async () => {
             try {
                 const url_path = `getVisualNovel`;
                 const data = await retrieveDatabase(url_path);
                 
-                // Exclude column 0 from columns
-                //const columns = data.columns.slice(1);
-
-                // Exclude column 0 from each row
-                //const rows = data.rows.map(row => row.slice(1));
-
-                // Set the modified tableData in the state
-                //setTableData({ columns, rows });
                 setTableData(data);
                 setLoading(false);
             } catch (error) {
@@ -94,6 +90,7 @@ const Vntable = () => {
             });
         };
 
+        // Function to 
         const updateGamesToPlayStatus = async () => {
             if (tableData.rows.length > 0) {
                 let games = [];
@@ -103,7 +100,6 @@ const Vntable = () => {
                     if (last_updated_date > last_played_date) {
                         const jpgUrl = `${process.env.PUBLIC_URL}/assets/images/visual_novel/${formatUnderscoreName(row[1])}.jpg`;
                         const pngUrl = `${process.env.PUBLIC_URL}/assets/images/visual_novel/${formatUnderscoreName(row[1])}.png`;
-                        // const imgUrl = jpgUrl || pngUrl; // Use jpgUrl if it exists, otherwise use pngUrl
                         const jpgExists = await checkImage(jpgUrl);
                         const imgUrl = jpgExists ? jpgUrl : pngUrl;
                         games.push(imgUrl);
@@ -200,6 +196,7 @@ const Vntable = () => {
     };    
     
     const handleUpdatesClick = async () => {
+        setUpdating(true);
         const values = getColumnValuesByCondition(tableData.rows, 1, 16, 'Ongoing');
         const data_updated = {};
 
@@ -212,11 +209,13 @@ const Vntable = () => {
 
                     //Write to database
                     let date = response_data["data"]["last_updated"];
+                    let ver = response_data["data"]["version"];
                     let data_formatted = formatScrappedDate(date);
                     let path = initial_url + "updateUserVisualNovel";
                     let data = {
                         "game": value,
                         "last_updated": data_formatted,
+                        "last_updated_ver": ver,
                     };
                     const response = await fetch(path, {
                         method: 'PUT',  
@@ -234,6 +233,7 @@ const Vntable = () => {
         }
 
         console.log("Data updated: ",data_updated)
+        setUpdating(false);
     };
 
     function generateRandom(min, max, step) {
@@ -342,7 +342,7 @@ const Vntable = () => {
         // Send PUT request with updated data
         //console.log('Updated data:', updatedData);
         // Logic for sending PUT request...
-        const userVisualNovelKeys = ["id","last_played", "last_updated", "status"];
+        const userVisualNovelKeys = ["id","last_played", "last_updated", "status","last_played_ver","last_updated_ver"];
         
         const path_vn = initial_url + "updateVisualNovel";
         const path_uservn = initial_url + "updateUserVisualNovel";
@@ -388,32 +388,34 @@ const Vntable = () => {
     if (loading){
         return <div>Loading...</div>;
     }
-
-
+    
     //Return the table
     return (
         <div className="TableContainer">
-        <button className="NewEntryButton" onClick={handleNewEntryClick}>Enter new entry</button>
-        <button className="unhideInfo" onClick={handleUnhideInfoClick}>
-            {showColumns ? 'Hide Information' : 'Show More Information'}
-        </button>
-        <button className="getUpdatesButton" onClick={handleUpdatesClick}>Get Updates</button>
-        <div className="games-updated-container">
-            Games updated: 
-            <span className="games-updated">
-                {gamesToPlay.map((imgUrl, index) => (
-                    <span key={index} className="game-image-container">
-                        <img src={imgUrl} alt={`Game ${index}`} className="game-image" />
-                    </span>
-                ))}
-            </span>
-        </div>
+            <button className="NewEntryButton" onClick={handleNewEntryClick}>Enter new entry</button>
+            <button className="unhideInfo" onClick={handleUnhideInfoClick}>
+                {showColumns ? 'Hide Information' : 'Show More Information'}
+            </button>
+            <button className="getUpdatesButton" onClick={handleUpdatesClick} disabled={updating}>
+                <span>Get Updates</span>
+                {updating && <Spinner />}
+            </button>
+            <div className="games-updated-container">
+                Games updated: 
+                <span className="games-updated">
+                    {gamesToPlay.map((imgUrl, index) => (
+                        <span key={index} className="game-image-container">
+                            <img src={imgUrl} alt={`Game ${index}`} className="game-image" />
+                        </span>
+                    ))}
+                </span>
+            </div>
 
             <div className="Table">
                 <table>
                     <thead>
                         <tr>
-                            {tableData.columns.slice(1).map((columnName, columnIndex) => (
+                            {tableData.columns.slice(1,-2).map((columnName, columnIndex) => (
                                 ((!showColumns && columnIndex > 0 && columnIndex < 9) ? null : (
                                     <th key={columnName} onClick={() => handleSortingChange(columnName)}>
                                         <span className="column-name">
@@ -432,74 +434,145 @@ const Vntable = () => {
                             const last_updated_date = parseDate(row[15]);
                             const color_date = last_updated_date > last_played_date;
 
-                        return (
-                            <tr key={rowIndex}>
-                                {row.slice(1).map((cell, cellIndex) => (
-                                    ((!showColumns && cellIndex > 0 && cellIndex < 9) ? null : (
-                                        <td key={cellIndex} style = {{
-                                            backgroundColor: 
-                                                (cellIndex === 14 && color_date) ? 'green' : 'inherit'                                            
-                                        }}>
-                                            {/* Render image for specific columns */}
-                                            {(cellIndex === 0 ) &&
-                                            <div className = "game_title_cell">
-                                                <img src={process.env.PUBLIC_URL + 
-                                                    `assets/images/visual_novel/${formatUnderscoreName(row[1])}.jpg`} 
-                                                    className="game_image_jpg"
+                            return (
+                                <tr key={rowIndex}>
+                                    {row.slice(1).map((cell, cellIndex) => {
+                                        if (!showColumns && cellIndex > 0 && cellIndex < 9) {
+                                            return null;
+                                        }
+                                
+                                        // Skip rendering cells 16 and 17 as <td>
+                                        if (cellIndex === 16 || cellIndex === 17) {
+                                            return null;
+                                        }
 
-                                                    onError={({ currentTarget }) => {
-                                                        if (currentTarget.src.includes("jpg")){
-                                                            currentTarget.src = process.env.PUBLIC_URL + "assets/images/visual_novel/" + formatUnderscoreName(row[1]) + ".png";
-                                                            currentTarget.className = "game_image_png";
-                                                        }  else {
-                                                            currentTarget.src=" ";
-                                                            currentTarget.onerror = null; // prevents looping
-                                                        }
-                                                        
-                                                    }}
-                                                   
-                                                    alt="" 
-                                                    />
-                                                <br />
-                                                <span className = "game_title">{cell}</span>
-                                            </div>
-                                            }
-                                            {(cellIndex >= 10 && cellIndex <= 12) &&
-                                                //<div className={`favourite-image ${imageLoadError ? '' : 'error'}`}>
-                                                <div className="favourite-cell">
-                                                    <img src={process.env.PUBLIC_URL +
-                                                        `assets/images/visual_novel/${formatUnderscoreName(row[1] + 
-                                                        " " +
-                                                        row[cellIndex + 1])}.png`} 
+                                        //console.log(row)
+                                
+                                        return (
+                                        <React.Fragment key={cellIndex}>
+                                            <td 
+                                                // style={{
+                                                //     backgroundColor: cellIndex === 14 && color_date ? 'green' : 
+                                                //     (
+                                                //         (cellIndex===13 | cellIndex===14) && row[16] !== "Ongoing"? "black" :
+                                                //             (cellIndex == 15 && row[16] == "Dropped"? "darkred" : 'inherit')
+                                                //     )
+                                                // }}
 
-                                                        onError={({ currentTarget }) => {
-                                                            currentTarget.onerror = null; // prevents looping
-                                                            currentTarget.src=" ";
-                                                        }}
-
-                                                        className="favourite-image"
-
-                                                        alt="" 
-                                                        
+                                                className={`${cellIndex === 14 && color_date ? 'UpdatedCell ' : 
+                                                    ''}${(cellIndex === 13 || cellIndex === 14) && (row[16] == 'Dropped' || row[16] == 'Completed') ? 'BlackedOut' : 
+                                                        ''}${cellIndex === 15 && row[16] === 'Dropped' ? 'StatusDropped ' : 
+                                                            ''}${(cellIndex === 13 || cellIndex === 14) && row[16] === 'Dr13213opped' ? 'BlackedOut' : 
+                                                                ''}
+                                                        `}
+                                                
+                                                >
+                                                {/* Render image for specific columns */}
+                                                {cellIndex === 0 && (
+                                                    <div className="game_title_cell">
+                                                        <img
+                                                            src={
+                                                            process.env.PUBLIC_URL +
+                                                            `assets/images/visual_novel/${formatUnderscoreName(row[1])}.jpg`
+                                                            }
+                                                            className="game_image_jpg"
+                                                            onError={({ currentTarget }) => {
+                                                            if (currentTarget.src.includes('jpg')) {
+                                                                currentTarget.src =
+                                                                process.env.PUBLIC_URL +
+                                                                'assets/images/visual_novel/' +
+                                                                formatUnderscoreName(row[1]) +
+                                                                '.png';
+                                                                currentTarget.className = 'game_image_png';
+                                                            } else {
+                                                                currentTarget.src = ' ';
+                                                                currentTarget.onerror = null; // prevents looping
+                                                            }
+                                                            }}
+                                                            alt=""
                                                         />
-                                                    <br />
-                                                    <span className = "text">{cell}</span>
-                                                </div>
-                                            }
-                                            {/* Render other cells */}
-                                            {(cellIndex !== 0 && !(cellIndex >= 10 && cellIndex <= 12)) &&
-                                                <div className = "text">
-                                                    {cell}
-                                                </div>
-                                            }
-                                        </td>
-                                    ))
-                                ))}
-                                <td>
-                                    <button onClick={() => handleEdit(row)}>Edit</button>
-                                </td>
-                            </tr>
-                        )})}
+                                                        <br />
+                                                        <span className="game_title">{cell}</span>
+                                                    </div>
+                                                )}
+
+                                                {cellIndex >= 10 && cellIndex <= 12 && (
+                                                    <div className="favourite-cell">
+                                                        <img
+                                                            src={
+                                                            process.env.PUBLIC_URL +
+                                                            `assets/images/visual_novel/${formatUnderscoreName(
+                                                                row[1] + ' ' + row[cellIndex + 1]
+                                                            )}.png`
+                                                            }
+                                                            onError={({ currentTarget }) => {
+                                                            currentTarget.onerror = null; // prevents looping
+                                                            currentTarget.src = ' ';
+                                                            }}
+                                                            className="favourite-image"
+                                                            alt=""
+                                                        />
+                                                        <br />
+                                                        <span className="text">{cell}</span>
+                                                    </div>
+                                                )}
+
+                                                {/* Last played and last updated cells*/}
+                                                {(cellIndex === 13 || cellIndex === 14) && (
+                                                    <div className="text"
+                                                    >
+                                                        {/* Render cells 16 and 17 under cells 13 and 14 */}
+                                                        {cellIndex === 13 && (
+                                                            <div className="nested-content">
+                                                                <div>Version: <br/>{row[17]}</div>
+                                                                <br/>
+                                                            </div>
+                                                        )}
+                                                        {cellIndex === 14 && (
+                                                            <div className="nested-content">
+                                                                <div>Version: <br/>{row[18]}</div>
+                                                                <br/>
+                                                            </div>
+                                                        )}
+                                                        {cell}
+                                                        {cellIndex == 13 && (
+                                                                <RefreshButton 
+                                                                    onClick={ async () => {
+                                                                        await fetchRequest(
+                                                                            initial_url+"updateUserVisualNovel", 
+                                                                            "PUT", 
+                                                                            {
+                                                                                "game": row[1],
+                                                                                "last_played_ver":row[18]
+                                                                            })
+                                                                            window.location.reload()
+                                                                        }
+                                                                    }
+                                                                />
+                                                        )}
+                                                    </div>
+                                                )}
+                                                
+                                                {/* Render other cells */}
+                                                {cellIndex !== 0 && !(cellIndex >= 10 && cellIndex <= 12) && cellIndex !== 13 && cellIndex !== 14 && cellIndex !== 16 && cellIndex != 17 && (
+                                                    <div className="text">{cell}</div>
+                                                )}
+
+                                            </td>
+
+                                            {/* Render Edit button in the last column */}
+                                            {cellIndex === row.length - 4 && (
+                                            <td>
+                                                <button onClick={() => handleEdit(row)}>Edit</button>
+                                            </td>
+                                            )}
+                                            
+                                        </React.Fragment>
+                                        );
+                                  })}
+                                </tr>
+                              );
+                        })}
                     </tbody>
                 </table>
             </div>

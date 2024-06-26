@@ -125,3 +125,8 @@ EXECUTE FUNCTION set_id_from_visualnovel();
 -- To reset
 -- ALTER SEQUENCE visualnovel_id_seq RESTART WITH 33
 
+ALTER TABLE uservisualnovel
+ADD last_played_ver varchar(50);
+ALTER TABLE uservisualnovel
+ADD last_updated_ver varchar(50);
+
