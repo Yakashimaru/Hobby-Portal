@@ -6,6 +6,7 @@ import formatColumnName from "../common/formatColumnName";
 import formatUnderscoreName from "../common/formatUnderscoreName";
 import formatScrappedDate from "../common/formatScrappedDate";
 import fetchRequest from "../common/fetchRequest";
+import getCurrentDate from "../common/getCurrentDate";
 
 // From components folder
 import Form from "../components/Form";
@@ -543,6 +544,7 @@ const Vntable = () => {
                                                                             "PUT", 
                                                                             {
                                                                                 "game": row[1],
+                                                                                "last_played":getCurrentDate(),
                                                                                 "last_played_ver":row[18]
                                                                             })
                                                                             window.location.reload()
