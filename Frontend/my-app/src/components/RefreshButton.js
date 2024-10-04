@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import '../styles/refreshButton.css';
 import ConfirmationDialog from './ConfirmationDialog';
 
-const RefreshButton = ({ onClick, showConfirmation = true }) => {
+const RefreshButton = ({ onClick, message, showConfirmation = true}) => {
     const [iconClass, setIconClass] = useState('fa');
     const [showDialog, setShowDialog] = useState(false);
 
@@ -33,7 +33,7 @@ const RefreshButton = ({ onClick, showConfirmation = true }) => {
             </button>
             {showDialog && (
                 <ConfirmationDialog
-                    message="Are you sure you want to refresh?"
+                    message={message}
                     onConfirm={handleConfirm}
                     onCancel={handleCancel}
                 />

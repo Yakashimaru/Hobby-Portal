@@ -2,8 +2,6 @@ import json
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
-from ..common.handle_exceptions import simple_exception, json_exception
-
 # Libraries for scrapping
 import requests
 from bs4 import BeautifulSoup
@@ -11,8 +9,12 @@ import time
 import random
 import re
 
+#from ..common.handle_exceptions import simple_exception, json_exception
+from common.handle_exceptions import simple_exception, json_exception
+
 # User agents
-from ..settings.user_agents import USER_AGENTS
+#from ..settings.user_agents import USER_AGENTS
+from settings.user_agents import USER_AGENTS
 
 app = Flask(__name__)
 CORS(app)
