@@ -3,9 +3,13 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os, sys
 
-from ..common.handle_exceptions import simple_exception, json_exception
-from ..common.database_functions import get_database, post_database, put_database, delete_database, get_database_inner_join
-from ..common.data_functions import split_data
+# from ..common.handle_exceptions import simple_exception, json_exception
+# from ..common.database_functions import get_database, post_database, put_database, delete_database, get_database_inner_join
+# from ..common.data_functions import split_data
+
+from common.handle_exceptions import simple_exception, json_exception
+from common.database_functions import get_database, post_database, put_database, delete_database, get_database_inner_join
+from common.data_functions import split_data
 
 app = Flask(__name__)
 CORS(app)

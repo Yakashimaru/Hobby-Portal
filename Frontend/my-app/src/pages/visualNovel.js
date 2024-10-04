@@ -226,7 +226,7 @@ const Vntable = () => {
                         body: JSON.stringify(data),
                     });
                     const responseData = await response.json();
-                    console.log('Response from server:', responseData);
+                    //console.log('Response from server:', responseData);
                 }
                 else{
                     data_updated[value] = "Failed";
@@ -235,6 +235,9 @@ const Vntable = () => {
 
         console.log("Data updated: ",data_updated)
         setUpdating(false);
+        if (data_updated.length > 0) {
+            window.location.reload();
+        }
     };
 
     function generateRandom(min, max, step) {
@@ -243,7 +246,16 @@ const Vntable = () => {
     };
 
     const updateVisualNovelDates = async (game_name) => {
-        let game_name_formatted = game_name.trim().replaceAll(" ", "-");
+        let game_name_formatted = "";
+
+        // TODO: Create a dictionary to store outliers
+        // FLAG: Temporary fix for broken promises
+        if (game_name.toLowerCase() == "broken promises") {
+            game_name_formatted = "broken-promises-2";
+        }
+        else{
+            game_name_formatted = game_name.trim().replaceAll(" ", "-");
+        }
         const path = initial_vn_url + "getVNDate";
         const data_url = vn_update_url + game_name_formatted + "/";
         const data = {"url": data_url};
@@ -257,11 +269,11 @@ const Vntable = () => {
                 body: JSON.stringify(data),
             });
             const responseData = await response.json();
-            console.log('Response from server:', responseData);
+            //console.log('Response from server:', responseData);
             return responseData;
 
         } catch (error) {
-            console.error('Error adding new entry:', error);
+            //console.error('Error adding new entry:', error);
             return { status: "500", message: error.toString() };  // Return a consistent error response
         }
     };
@@ -550,6 +562,7 @@ const Vntable = () => {
                                                                             window.location.reload()
                                                                         }
                                                                     }
+                                                                    message = "This button updates the last played date to the last updated date.\n \n Are you sure you want to update the last played date?"
                                                                 />
                                                         )}
                                                     </div>

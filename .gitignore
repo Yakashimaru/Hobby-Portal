@@ -3,4 +3,5 @@
 Database/*.csv
 __pycache__
 Frontend/my-app/public/assets/
-
+.env
+node_modules
