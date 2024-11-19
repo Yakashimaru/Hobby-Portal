@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import formatColumnName from '../common/formatColumnName';
-import formatUnderscoreName from '../common/formatUnderscoreName';
+import formatUnderscoreName from '../common/formatting';
 import '../styles/form.css';
 
 const UpdateForm = ({ img, initialValues, showForm, onSubmit, onCloseForm }) => {

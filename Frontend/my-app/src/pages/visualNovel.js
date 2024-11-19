@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 // From common folder
 import retrieveDatabase from "../common/retrieveDatabase";
 import formatColumnName from "../common/formatColumnName";
-import formatUnderscoreName from "../common/formatUnderscoreName";
+import {formatUnderscoreName, removeSpecialCharacters} from "../common/formatting";
 import formatScrappedDate from "../common/formatScrappedDate";
 import fetchRequest from "../common/fetchRequest";
 import getCurrentDate from "../common/getCurrentDate";
@@ -50,13 +50,17 @@ const Vntable = () => {
     // Variables
     const table_name = "VisualNovel";  
 
+    async function refresh_data(){
+        const url_path = `getVisualNovel`;
+        const data = await retrieveDatabase(url_path);
+        
+        setTableData(data);
+    }
+
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const url_path = `getVisualNovel`;
-                const data = await retrieveDatabase(url_path);
-                
-                setTableData(data);
+                await refresh_data();
                 setLoading(false);
             } catch (error) {
                 console.error('Error fetching data:', error);
@@ -91,7 +95,7 @@ const Vntable = () => {
             });
         };
 
-        // Function to 
+        // Function to display "Games Updated"
         const updateGamesToPlayStatus = async () => {
             if (tableData.rows.length > 0) {
                 let games = [];
@@ -181,7 +185,8 @@ const Vntable = () => {
                 if (response_uvn["code"] == "201"){
                     console.log(response_uvn)
                     setShowEditForm(false);
-                    window.location.reload(); // Refresh the page after form submission
+
+                    refresh_data();
                 }
             }
         }
@@ -236,7 +241,7 @@ const Vntable = () => {
         console.log("Data updated: ",data_updated)
         setUpdating(false);
         if (data_updated.length > 0) {
-            window.location.reload();
+            refresh_data();
         }
     };
 
@@ -386,7 +391,8 @@ const Vntable = () => {
                 if (response_uvn["code"] == "201"){
                     console.log(response_uvn)
                     setShowEditForm(false);
-                    window.location.reload(); // Refresh the page after form submission
+
+                    refresh_data();
                 }
             }
         }
@@ -486,7 +492,7 @@ const Vntable = () => {
                                                         <img
                                                             src={
                                                             process.env.PUBLIC_URL +
-                                                            `assets/images/visual_novel/${formatUnderscoreName(row[1])}.jpg`
+                                                            `assets/images/visual_novel/${formatUnderscoreName(removeSpecialCharacters(row[1]))}.jpg`
                                                             }
                                                             className="game_image_jpg"
                                                             onError={({ currentTarget }) => {
@@ -559,7 +565,7 @@ const Vntable = () => {
                                                                                 "last_played":getCurrentDate(),
                                                                                 "last_played_ver":row[18]
                                                                             })
-                                                                            window.location.reload()
+                                                                            refresh_data();
                                                                         }
                                                                     }
                                                                     message = "This button updates the last played date to the last updated date.\n \n Are you sure you want to update the last played date?"
