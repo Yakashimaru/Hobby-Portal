@@ -478,9 +478,13 @@ const Vntable = () => {
                                                 //     )
                                                 // }}
 
+                                                // If the current cell is at index 14 and 'color_date' is true, apply 'UpdatedCell' class. Otherwise, no class is applied.
                                                 className={`${cellIndex === 14 && color_date ? 'UpdatedCell ' : 
-                                                    ''}${(cellIndex === 13 || cellIndex === 14) && (row[16] == 'Dropped' || row[16] == 'Completed') ? 'BlackedOut' : 
-                                                        ''}${cellIndex === 15 && row[16] === 'Dropped' ? 'StatusDropped ' : 
+                                                    // If the current cell is at index 13 or 14, and 'row[16]' has the value 'Dropped', 'Completed', or 'Abandoned', apply 'BlackedOut' class.
+                                                    ''}${(cellIndex === 13 || cellIndex === 14) && (row[16] == 'Dropped' || row[16] == 'Completed' || row[16] == 'Abandoned') ? 'BlackedOut' : 
+                                                        // If the current cell is at index 15 and 'row[16]' is 'Dropped' or 'Abandoned', apply 'StatusDropped' class.
+                                                        ''}${cellIndex === 15 && (row[16] === 'Dropped' || row[16] === 'Abandoned') ? 'StatusDropped ' : 
+                                                            // If the current cell is at index 13 or 14 and 'row[16]' has the exact value 'Dr13213opped', apply 'BlackedOut' class.
                                                             ''}${(cellIndex === 13 || cellIndex === 14) && row[16] === 'Dr13213opped' ? 'BlackedOut' : 
                                                                 ''}
                                                         `}

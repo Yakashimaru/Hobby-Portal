@@ -28,13 +28,29 @@ const Form = ({ table_name, columns, showForm, onCloseForm, onSubmit }) => {
                             {/* Render input fields for each column */}
                             {columns.slice(1).map((columnName, columnIndex) => (
                                 <div key={columnIndex}>
-                                    <label htmlFor={columnName}>{formatColumnName(columnName)}</label>
+                                    <label htmlFor={columnName}>{formatColumnName(columnName)  + "  "}</label>
+
+                                    {/* Check if the column is "status" to render dropdown */}
+                                    {columnName === 'status' ? (
+                                        <select
+                                            id={columnName}
+                                            name={columnName}
+                                            onChange={handleInputChange}
+                                            value={formData[columnName] || 'Ongoing'}
+                                        >
+                                            <option value="Ongoing">Ongoing</option>
+                                            <option value="Dropped">Dropped</option>
+                                            <option value="Completed">Completed</option>
+                                            <option value="Abandoned">Abandoned</option>
+                                        </select>
+                                    ) : (
                                     <input
                                         type="text"
                                         id={columnName}
                                         name={columnName}
                                         onChange={handleInputChange}
                                     />
+                                    )}
                                 </div>
                             ))}
                             <button type="submit">Submit</button>
