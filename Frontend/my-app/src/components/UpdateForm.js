@@ -50,6 +50,22 @@ const UpdateForm = ({ img, initialValues, showForm, onSubmit, onCloseForm }) => 
                                 {formEntries.map(([name, value], index) => (
                                     <div key={index} className="FormItem">
                                         <label htmlFor={name}>{formatColumnName(name)}</label>
+
+                                    {/* Check if the column is "status" to render dropdown */}
+                                    {name === 'status' ? (
+                                        <select
+                                            id={name}
+                                            name={name}
+                                            onChange={handleInputChange}
+                                            value={formData[name] || 'Ongoing'}
+                                        >
+                                            <option value="Ongoing">Ongoing</option>
+                                            <option value="Dropped">Dropped</option>
+                                            <option value="Completed">Completed</option>
+                                            <option value="Abandoned">Abandoned</option>
+                                        </select>
+                                    ) : (
+
                                         <input
                                             type="text"
                                             id={name}
@@ -57,6 +73,7 @@ const UpdateForm = ({ img, initialValues, showForm, onSubmit, onCloseForm }) => 
                                             value={value || ''}
                                             onChange={handleInputChange}
                                         />
+                                    )}
                                     </div>
                                 ))}
                             </div>
