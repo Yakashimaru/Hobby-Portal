@@ -10,4 +10,4 @@ REM Wait a few seconds to allow services to start
 timeout /t 5 /nobreak >nul
 
 REM Open the URL in Chrome
-start chrome http://localhost
+start chrome http://localhost/visualNovel

@@ -149,6 +149,7 @@ const Vntable = () => {
     // };
 
     const handleSubmit = async (newData) => {
+        console.log('New data:', newData);
         const userVisualNovelKeys = ["id","last_played", "last_updated", "status"];
         
         const path_vn = initial_url + "addVisualNovel";
@@ -200,8 +201,54 @@ const Vntable = () => {
             .filter(row => row[conditionColumnIndex] === conditionValue)
             .map(row => row[targetColumnIndex]);
     };    
+
+    const handleSlowUpdatesClick = async () => {
+        console.log("Slow updates clicked");
+        setUpdating(true);
+        const values = getColumnValuesByCondition(tableData.rows, 1, 16, 'Ongoing');
+        const data_updated = {};
+
+        setFilteredData(values);
+
+        for (const value of values) {
+            let response_data = await updateVisualNovelDates(value,true);
+                if (response_data["code"] == "200"){
+                    data_updated[value] = "Success";
+
+                    //Write to database
+                    let date = response_data["data"]["last_updated"];
+                    let ver = response_data["data"]["version"];
+                    let data_formatted = date;
+                    let path = initial_url + "updateUserVisualNovel";
+                    let data = {
+                        "game": value,
+                        "last_updated": data_formatted,
+                        "last_updated_ver": ver,
+                    };
+                    const response = await fetch(path, {
+                        method: 'PUT',  
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data),
+                    });
+                    const responseData = await response.json();
+                    //console.log('Response from server:', responseData);
+                }
+                else{
+                    data_updated[value] = "Failed";
+                }
+        }
+
+        console.log("Data updated: ",data_updated)
+        setUpdating(false);
+        if (data_updated.length > 0) {
+            refresh_data();
+        }
+    };
     
     const handleUpdatesClick = async () => {
+        console.log("Updating....");
         setUpdating(true);
         const values = getColumnValuesByCondition(tableData.rows, 1, 16, 'Ongoing');
         const data_updated = {};
@@ -216,7 +263,7 @@ const Vntable = () => {
                     //Write to database
                     let date = response_data["data"]["last_updated"];
                     let ver = response_data["data"]["version"];
-                    let data_formatted = formatScrappedDate(date);
+                    let data_formatted = date;
                     let path = initial_url + "updateUserVisualNovel";
                     let data = {
                         "game": value,
@@ -250,7 +297,8 @@ const Vntable = () => {
         return Math.round(randomNum / step) * step;
     };
 
-    const updateVisualNovelDates = async (game_name) => {
+    const updateVisualNovelDates = async (game_name, bool = false) => {
+        game_name = removeSpecialCharacters(game_name);
         let game_name_formatted = "";
 
         // TODO: Create a dictionary to store outliers
@@ -263,7 +311,11 @@ const Vntable = () => {
         }
         const path = initial_vn_url + "getVNDate";
         const data_url = vn_update_url + game_name_formatted + "/";
-        const data = {"url": data_url};
+        let data = {"url": data_url};
+        if (bool) {
+            data = {"url": data_url, "limiter_low":60, "limiter_high":600};
+        }
+        
         
         try {
             const response = await fetch(path, {
@@ -324,8 +376,8 @@ const Vntable = () => {
 
     // Function to handle edit button click
     const handleEdit = async (row) => {
-        const jpgUrl = `${process.env.PUBLIC_URL}/assets/images/visual_novel/${formatUnderscoreName(row[1])}.jpg`;
-        const pngUrl = `${process.env.PUBLIC_URL}/assets/images/visual_novel/${formatUnderscoreName(row[1])}.png`;
+        const jpgUrl = `${process.env.PUBLIC_URL}/assets/images/visual_novel/${formatUnderscoreName(removeSpecialCharacters(row[1]))}.jpg`;
+        const pngUrl = `${process.env.PUBLIC_URL}/assets/images/visual_novel/${formatUnderscoreName(removeSpecialCharacters(row[1]))}.png`;
 
         const jpgExists = await checkImage(jpgUrl);
         const imgUrl = jpgExists ? jpgUrl : pngUrl;
@@ -358,7 +410,7 @@ const Vntable = () => {
     // Function to handle form submission for editing
     const handleEditSubmit = async (updatedData) => {
         // Send PUT request with updated data
-        //console.log('Updated data:', updatedData);
+        console.log('Updated data:', updatedData);
         // Logic for sending PUT request...
         const userVisualNovelKeys = ["id","last_played", "last_updated", "status","last_played_ver","last_updated_ver"];
         
@@ -387,7 +439,7 @@ const Vntable = () => {
             if (response_vn["code"] == "201"){
                 console.log(path_uservn, uservnTableData)
                 let response_uvn = await fetchRequest(path_uservn, "PUT", uservnTableData);
-                console.log("herhere",response_uvn)
+                //console.log("herhere",response_uvn)
                 if (response_uvn["code"] == "201"){
                     console.log(response_uvn)
                     setShowEditForm(false);
@@ -417,6 +469,10 @@ const Vntable = () => {
             </button>
             <button className="getUpdatesButton" onClick={handleUpdatesClick} disabled={updating}>
                 <span>Get Updates</span>
+                {updating && <Spinner />}
+            </button>
+            <button className="getSlowUpdatesButton" onClick={handleSlowUpdatesClick} disabled={updating}>
+                <span>Get Slow Updates</span>
                 {updating && <Spinner />}
             </button>
             <div className="games-updated-container">
@@ -504,7 +560,7 @@ const Vntable = () => {
                                                                 currentTarget.src =
                                                                 process.env.PUBLIC_URL +
                                                                 'assets/images/visual_novel/' +
-                                                                formatUnderscoreName(row[1]) +
+                                                                formatUnderscoreName(removeSpecialCharacters(row[1])) +
                                                                 '.png';
                                                                 currentTarget.className = 'game_image_png';
                                                             } else {
@@ -524,9 +580,9 @@ const Vntable = () => {
                                                         <img
                                                             src={
                                                             process.env.PUBLIC_URL +
-                                                            `assets/images/visual_novel/${formatUnderscoreName(
+                                                            `assets/images/visual_novel/${formatUnderscoreName(removeSpecialCharacters(
                                                                 row[1] + ' ' + row[cellIndex + 1]
-                                                            )}.png`
+                                                            ))}.png`
                                                             }
                                                             onError={({ currentTarget }) => {
                                                             currentTarget.onerror = null; // prevents looping

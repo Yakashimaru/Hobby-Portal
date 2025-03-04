@@ -57,11 +57,12 @@ const UpdateForm = ({ img, initialValues, showForm, onSubmit, onCloseForm }) => 
                                             id={name}
                                             name={name}
                                             onChange={handleInputChange}
-                                            value={formData[name] || 'Ongoing'}
+                                            value={formData[name] || 'Ongoing'} // Bind to formData
                                         >
                                             <option value="Ongoing">Ongoing</option>
-                                            <option value="Dropped">Dropped</option>
+                                            <option value="Soon">Soon</option>
                                             <option value="Completed">Completed</option>
+                                            <option value="Dropped">Dropped</option>
                                             <option value="Abandoned">Abandoned</option>
                                         </select>
                                     ) : (
