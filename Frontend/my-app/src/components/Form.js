@@ -39,8 +39,9 @@ const Form = ({ table_name, columns, showForm, onCloseForm, onSubmit }) => {
                                             value={formData[columnName] || 'Ongoing'}
                                         >
                                             <option value="Ongoing">Ongoing</option>
-                                            <option value="Dropped">Dropped</option>
+                                            <option value="Soon">Soon</option>
                                             <option value="Completed">Completed</option>
+                                            <option value="Dropped">Dropped</option>
                                             <option value="Abandoned">Abandoned</option>
                                         </select>
                                     ) : (

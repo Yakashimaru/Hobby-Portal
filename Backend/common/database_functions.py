@@ -2,13 +2,13 @@
 
 from flask import Flask, request, jsonify
 
-# from ..settings.database_connection import connect_to_database
-# from ..common.handle_exceptions import internal_error_exception
-# from ..common.data_functions import convert_keys_values_to_string
+from ..settings.database_connection import connect_to_database
+from ..common.handle_exceptions import internal_error_exception
+from ..common.data_functions import convert_keys_values_to_string
 
-from settings.database_connection import connect_to_database
-from common.handle_exceptions import internal_error_exception
-from common.data_functions import convert_keys_values_to_string
+# from settings.database_connection import connect_to_database
+# from common.handle_exceptions import internal_error_exception
+# from common.data_functions import convert_keys_values_to_string
 
 ##### GET function #####
 def get_database(table_name):

@@ -5,19 +5,32 @@ from flask_cors import CORS
 # Libraries for scrapping
 import requests
 from bs4 import BeautifulSoup
+
+# Libraries for date parsing
+from datetime import datetime
 import time
 import random
 import re
 
-#from ..common.handle_exceptions import simple_exception, json_exception
-from common.handle_exceptions import simple_exception, json_exception
-
-# User agents
-#from ..settings.user_agents import USER_AGENTS
-from settings.user_agents import USER_AGENTS
+try:
+    # Import modules:
+    from ..common.handle_exceptions import simple_exception, json_exception
+    # User agents
+    from ..settings.user_agents import USER_AGENTS
+except:
+    from common.handle_exceptions import simple_exception, json_exception
+    from settings.user_agents import USER_AGENTS
 
 app = Flask(__name__)
 CORS(app)
+
+# After request function to add CORS headers
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')  # Allows all origins
+    response.headers.add('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')  # Specifies allowed methods
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization')  # Specifies allowed headers
+    return response
 
 @app.route("/getVNDate", methods=['POST'])
 def get_last_updated():
@@ -49,15 +62,24 @@ def get_last_updated():
                 soup = BeautifulSoup(response.content, 'html.parser')
                 
                 # Find the span with the specific class
-                last_updated_span = soup.find('span', class_='meta-item last-updated')
+                last_updated_span = soup.find('time', class_='gp-post-meta gp-meta-date')
 
                 # Find the h1 with the specific class
-                post_title_h1 = soup.find('h1', class_='post-title entry-title')
-                
+                post_title_h1 = soup.find('h1', class_='gp-entry-title gp-single-title')
+
                 # Check if the span and h1 are found and return their content
                 if last_updated_span and post_title_h1:
                     last_updated = last_updated_span.get_text(strip=True)
                     post_title = post_title_h1.get_text(strip=True)
+
+                    # Convert `last_updated` to "(YYYY-MM-DD)" format
+                    try:
+                        last_updated_date = datetime.strptime(last_updated, "%B %d, %Y")
+                        last_updated = last_updated_date.strftime("%Y-%m-%d")
+                    except ValueError:
+                        # Handle cases where the date format is unexpected
+                        last_updated = None
+
 
                     # Use regex to parse the post title
                     match = re.match(r'^(.*?) \[(.*?)\] \[(.*?)\]$', post_title)
@@ -112,5 +134,5 @@ def get_last_updated():
         return json_exception(str(request.get_data()))
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5005, debug=True)
-    #app.run(port = 5005, debug=True)
+    #app.run(host='0.0.0.0', port=5005, debug=True)
+    app.run(port = 5005, debug=True)
