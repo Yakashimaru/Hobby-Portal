@@ -2,13 +2,18 @@
 
 from flask import Flask, request, jsonify
 
-from ..settings.database_connection import connect_to_database
-from ..common.handle_exceptions import internal_error_exception
-from ..common.data_functions import convert_keys_values_to_string
+try: 
+    from ..settings.database_connection import connect_to_database
+    from ..common.handle_exceptions import internal_error_exception
+    from ..common.data_functions import convert_keys_values_to_string
+except:
+    from settings.database_connection import connect_to_database
+    from common.handle_exceptions import internal_error_exception
+    from common.data_functions import convert_keys_values_to_string
 
-# from settings.database_connection import connect_to_database
-# from common.handle_exceptions import internal_error_exception
-# from common.data_functions import convert_keys_values_to_string
+##### Output SQL as dictionary #####
+def dict_result(columns, rows):
+    return [dict(zip(columns, row)) for row in rows]
 
 ##### GET function #####
 def get_database(table_name):
@@ -27,9 +32,7 @@ def get_database(table_name):
         cur.close()
         conn.close()
 
-        result = {'columns': columns, 'rows': rows}
-
-        return jsonify(result)
+        return dict_result(columns, rows)
 
     except Exception as e:
         return internal_error_exception(e)
@@ -52,9 +55,7 @@ def get_database_inner_join(table_name1, table_name2, join_clause ,order = "*", 
         cur.close()
         conn.close()
 
-        result = {'columns': columns, 'rows': rows}
-
-        return jsonify(result)
+        return dict_result(columns, rows)
 
     except Exception as e:
         return internal_error_exception(e)
