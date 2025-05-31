@@ -1,79 +1,45 @@
 import React from 'react';
 import { Star, Calendar, RefreshCw, X } from 'lucide-react';
 
-////////// Utils //////////
-import { formatUnderscoreName, removeSpecialCharacters } from "../utils/formatting";
-
+import GameImage from './GameImage';
 import type { Game } from 'types/game';
 
+import { useClickOutside } from '../hooks/useClickOutside';
+
 interface GameDetailsSidebarProps {
-    game: Game;
+    game: Game | null;
+    isVisible: boolean;
     onClose: () => void;
+    statusColor: string;
 }
 
-const GameImage = ({ gameTitle, className, alt }: { gameTitle: string; className: string; alt: string }) => {
-    const [currentSrc, setCurrentSrc] = React.useState(() => {
-        const formattedGameTitle = formatUnderscoreName(removeSpecialCharacters(gameTitle));
-        return new URL(`../assets/images/visual_novel/${formattedGameTitle}.jpg`, import.meta.url).href;
+const GameDetailsSidebar: React.FC<GameDetailsSidebarProps> = ({ game, isVisible, onClose, statusColor }) => {  
+    const sidebarRef = useClickOutside(() => {
+        if (isVisible) onClose();
     });
-    const [hasError, setHasError] = React.useState(false);
-
-    const handleError = () => {
-        if (currentSrc.includes('.jpg')) {
-            const formattedGameTitle = formatUnderscoreName(removeSpecialCharacters(gameTitle));
-            const pngSrc = new URL(`../assets/images/visual_novel/${formattedGameTitle}.png`, import.meta.url).href;
-            setCurrentSrc(pngSrc);
-        } else {
-            setHasError(true);
-        }
-    };
-
-    if (hasError) {
-        return (
-            <div className={`${className} bg-gray-200 flex items-center justify-center`}>
-                <span className="text-gray-500 text-sm">No Image</span>
-            </div>
-        );
-    }
-
-    return (
-        <img 
-            src={currentSrc}
-            alt={alt}
-            className={className}
-            onError={handleError}
-        />
-    );
-};
-
-const GameDetailsSidebar: React.FC<GameDetailsSidebarProps> = ({ game, onClose }) => {
-    const statusColors = {
-        'Completed': 'bg-green-100 text-green-800',
-        'Ongoing': 'bg-blue-100 text-blue-800',
-        'Soon': 'bg-yellow-100 text-yellow-800',
-        'Abandoned': 'bg-gray-100 text-gray-800',
-        'Dropped': 'bg-red-100 text-red-800'
-    } as const;
-
-    const getStatusColor = (status: keyof typeof statusColors): string => {
-        return statusColors[status] || 'bg-gray-100 text-gray-800';
-    };
+    
+    if (!game) return null;
 
     const favorites = [game.fav_1, game.fav_2, game.fav_3].filter(Boolean);
     
-    return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-end">
-            <div className="bg-white w-full max-w-md h-full overflow-y-auto shadow-2xl">
-                <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
-                    <h2 className="text-xl font-bold text-gray-900">Game Details</h2>
-                    <button 
-                        onClick={onClose}
-                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                    >
-                        <X className="w-5 h-5" />
-                    </button>
-                </div>
-                
+     return (
+        <div 
+            ref={sidebarRef}
+            className={`fixed top-16 right-0 h-[calc(100vh-4rem)] w-80 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out z-40 overflow-y-auto ${
+                isVisible ? 'translate-x-0' : 'translate-x-full'
+            }`}
+        >
+            <div className="bg-white border-b p-4 flex justify-between items-center">
+                <h2 className="text-xl font-bold text-gray-900">Game Details</h2>
+                <button 
+                    onClick={onClose}
+                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                    <X className="w-5 h-5" />
+                </button>
+            </div>
+            
+            <div className="transition-opacity duration-200">
                 <div className="p-6 space-y-6">
                     {/* Game Image */}
                     <div className="text-center">
@@ -93,11 +59,13 @@ const GameDetailsSidebar: React.FC<GameDetailsSidebarProps> = ({ game, onClose }
 
                         {/* Rating and Status */}
                         <div className="flex items-center space-x-4">
-                            <div className="flex items-center bg-gray-100 px-3 py-2 rounded-lg">
-                                <Star className="w-4 h-4 mr-2 fill-yellow-400 text-yellow-400" />
-                                <span className="font-semibold">{game.rating}</span>
-                            </div>
-                            <div className={`px-3 py-2 rounded-lg text-sm font-medium ${getStatusColor(game.status)}`}>
+                            {game.rating && (
+                                <div className="flex items-center bg-gray-100 px-3 py-2 rounded-lg">
+                                    <Star className="w-4 h-4 mr-2 fill-yellow-400 text-yellow-400" />
+                                    <span className="font-semibold">{game.rating}</span>
+                                </div>
+                            )}
+                            <div className={`px-3 py-2 rounded-lg text-sm font-medium ${statusColor}`}>
                                 {game.status.replace('-', ' ')}
                             </div>
                         </div>
@@ -134,12 +102,46 @@ const GameDetailsSidebar: React.FC<GameDetailsSidebarProps> = ({ game, onClose }
                         </div>
                     )}
 
-                    {/* Notes section if available */}
-                    {game.notes && (
+                    {/* Game Metrics (if available) */}
+                    {(game.story || game.renders || game.animations || game.scenes) && (
                         <div>
-                            <h4 className="text-lg font-semibold text-gray-900 mb-3">Notes</h4>
+                            <h4 className="text-lg font-semibold text-gray-900 mb-4">Game Ratings</h4>
+                            <div className="grid grid-cols-2 gap-3">
+                                {game.story && (
+                                    <div className="p-3 bg-gray-50 rounded-lg">
+                                        <div className="text-sm text-gray-600">Story</div>
+                                        <div className="font-semibold">{game.story}/10</div>
+                                    </div>
+                                )}
+                                {game.renders && (
+                                    <div className="p-3 bg-gray-50 rounded-lg">
+                                        <div className="text-sm text-gray-600">Renders</div>
+                                        <div className="font-semibold">{game.renders}/10</div>
+                                    </div>
+                                )}
+                                {game.animations && (
+                                    <div className="p-3 bg-gray-50 rounded-lg">
+                                        <div className="text-sm text-gray-600">Animations</div>
+                                        <div className="font-semibold">{game.animations}/10</div>
+                                    </div>
+                                )}
+                                {game.scenes && (
+                                    <div className="p-3 bg-gray-50 rounded-lg">
+                                        <div className="text-sm text-gray-600">Scenes</div>
+                                        <div className="font-semibold">{game.scenes}/10</div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Additional Info */}
+                    {game.year && (
+                        <div>
+                            <h4 className="text-lg font-semibold text-gray-900 mb-3">Additional Info</h4>
                             <div className="bg-gray-50 rounded-lg p-4">
-                                <p className="text-gray-700 text-sm leading-relaxed">{game.notes}</p>
+                                <div className="text-sm text-gray-600">Release Year</div>
+                                <div className="font-medium">{game.year}</div>
                             </div>
                         </div>
                     )}
