@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 
 const Navbar = () => {
   return (
-    <nav className="bg-blue-600 text-white p-4">
+    <nav className="bg-blue-600 text-white p-4 sticky top-0 z-50 shadow-md">
       <div className="container mx-auto flex items-center relative">
         <Link to="/" className="text-xl font-bold absolute left-0">
           Hobby Portal
