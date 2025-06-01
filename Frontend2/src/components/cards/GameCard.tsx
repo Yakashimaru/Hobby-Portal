@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import GameImage from './GameImage';
+import DisplayImage from '../DisplayImage';
 import type { Game } from 'types/game';
 import { Star, Calendar, RefreshCw, Check, Play } from 'lucide-react';
-import { checkForUpdate } from '../utils/checkForUpdate';
+import { checkForUpdate } from '../../utils/checkForUpdate';
+import Card from './Card';
+import { formatUnderscoreName, removeSpecialCharacters } from '../../utils/formatting';
 
 interface GameCardProps {
     game: Game;
@@ -13,17 +15,25 @@ interface GameCardProps {
 
 const GameCard = ({ game, onGameClick, currentTab, statusColor }: GameCardProps) => {
     const [isHovered, setIsHovered] = useState(false);
+
+    const imagePath = "../assets/images/visual_novel/";
+    const formattedGameName = formatUnderscoreName(removeSpecialCharacters(game.game));
+    
+    const handleCardClick = (e: React.MouseEvent) => {
+        e.stopPropagation(); // Prevent event bubbling
+        onGameClick(game);
+    };
     
     return (
-        <div 
-            className="bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 overflow-hidden group cursor-pointer"
-            onClick={() => onGameClick(game)}
+        <Card 
+            onClick={handleCardClick}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
             <div className="relative">
-                <GameImage 
-                    gameTitle={game.game}
+                <DisplayImage 
+                    imageTitle={formattedGameName}
+                    path={imagePath}
                     className="w-full h-34 object-contain group-hover:scale-105 transition-transform duration-200"
                     alt={game.game}
                 />
@@ -94,7 +104,7 @@ const GameCard = ({ game, onGameClick, currentTab, statusColor }: GameCardProps)
                     </div>
                 </div>
             </div>
-        </div>
+        </Card>
     );
 };
 

@@ -5,7 +5,16 @@ export const useClickOutside = (callback: () => void) => {
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (ref.current && !ref.current.contains(event.target as Node)) {
+            const target = event.target as Element;
+            
+            // Don't close if clicking on the sidebar itself
+            if (ref.current && !ref.current.contains(target)) {
+                // Don't close if clicking on a game card or any of its children
+                const gameCard = target.closest('[data-game-card]');
+                if (gameCard) {
+                    return;
+                }
+                
                 callback();
             }
         };
