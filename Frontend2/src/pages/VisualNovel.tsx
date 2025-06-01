@@ -21,9 +21,12 @@ import {
     categorizeOngoingGamesByRating 
 } from '../utils/gameFilters';
 
+import { formatUnderscoreName, removeSpecialCharacters } from '../utils/formatting';
+
 ////////// Components //////////
 import GameDetailsSidebar from "../components/sidebars/GameDetailsSidebar";
 import GameCard from '../components/cards/GameCard';
+import FullscreenGallery from '../components/FullscreenGallery';
 
 // Types for better type safety
 type ArchiveFilter = 'all' | 'completed' | 'dropped';
@@ -41,6 +44,17 @@ const VisualNovel = () => {
     const [selectedGame, setSelectedGame] = useState<Game | null>(null);
 
     const { games, loading, error, refetch } = getGameData(`${import.meta.env.VITE_API_BASE_URL}/getVisualNovel`)
+
+    const [galleryOpen, setGalleryOpen] = useState(false);
+    const [galleryGame, setGalleryGame] = useState<Game | null>(null);
+    const [galleryIndex, setGalleryIndex] = useState(0);
+
+    // Pass a function to open gallery from sidebar
+    const handleOpenGallery = (game: Game, index: number) => {
+        setGalleryGame(game);
+        setGalleryIndex(index);
+        setGalleryOpen(true);
+    };
 
     // Memoized computed values for better performance
     const computedData = useMemo(() => {
@@ -167,7 +181,7 @@ const VisualNovel = () => {
                                 }`}
                             >
                                 <Archive className="w-4 h-4 mr-2" />
-                                Archive ({completedGames.length + droppedGames.length})
+                                    Archive ({completedGames.length + droppedGames.length})
                             </button>
                         </div>
                     </div>
@@ -528,7 +542,22 @@ const VisualNovel = () => {
                 isVisible={!!selectedGame}
                 onClose={handleCloseSidebar}
                 statusColor={selectedGame ? getStatusColor(selectedGame.status) : ''}
+                onOpenGallery={handleOpenGallery}
             />
+
+            {/* Gallery at same level as sidebar */}
+            {galleryGame && (
+                <FullscreenGallery
+                    isOpen={galleryOpen}
+                    onClose={() => setGalleryOpen(false)}
+                    favorites={[galleryGame.fav_1, galleryGame.fav_2, galleryGame.fav_3].filter((fav): fav is string => Boolean(fav))}
+                    currentIndex={galleryIndex}
+                    onIndexChange={setGalleryIndex}
+                    imagePath="../assets/images/visual_novel/"
+                    gameTitle={galleryGame.game}
+                    formattedGameName={formatUnderscoreName(removeSpecialCharacters(galleryGame.game))}
+                />
+            )}
         </>
     );
 };
