@@ -1,10 +1,12 @@
-import React from 'react';
-import { Star, Heart, Calendar } from 'lucide-react';
+import React, { useState } from 'react';
+import { Heart, Calendar } from 'lucide-react';
 
 import DisplayImage from '../DisplayImage';
 import type { Game } from 'types/game';
 
 import Sidebar from './Sidebar';
+import HoverImagePreview from '../HoverImagePreview';
+import FullscreenGallery from '../FullscreenGallery';
 
 import { formatUnderscoreName, removeSpecialCharacters } from '../../utils/formatting';
 
@@ -13,15 +15,28 @@ interface GameDetailsSidebarProps {
     isVisible: boolean;
     onClose: () => void;
     statusColor: string;
+    onOpenGallery: (game: Game, index: number) => void;
 }
 
-const GameDetailsSidebar: React.FC<GameDetailsSidebarProps> = ({ game, isVisible, onClose, statusColor }) => {  
+const GameDetailsSidebar: React.FC<GameDetailsSidebarProps> = ({ 
+    game, 
+    isVisible, 
+    onClose, 
+    statusColor,
+    onOpenGallery
+}) => {  
     if (!game) return null;
 
     const favorites = [game.fav_1, game.fav_2, game.fav_3].filter(Boolean);
 
     const imagePath = "../assets/images/visual_novel/";
     const formattedGameName = formatUnderscoreName(removeSpecialCharacters(game.game));
+
+    const handleFavoriteClick = (index: number) => {
+        onOpenGallery(game, index);
+    };
+
+    
     
      return (
         <Sidebar 
@@ -70,27 +85,36 @@ const GameDetailsSidebar: React.FC<GameDetailsSidebarProps> = ({ game, isVisible
                         </h4>
                         <div className="space-y-4">
                             {favorites.map((favorite, index) => {
-                                // Generate gradient colors for each favorite
                                 const gradients = [
                                     'from-pink-300 to-purple-300',
                                     'from-blue-300 to-green-300',
                                     'from-yellow-300 to-orange-300'
                                 ];
+                                const characterImageTitle = formatUnderscoreName(removeSpecialCharacters(game.game + " " + favorite));
                                 
                                 return (
-                                    <div key={index} className="text-center">
-                                        <div className={`w-full h-40 bg-gradient-to-br ${gradients[index]} rounded-lg flex items-center justify-center mb-2 shadow-sm overflow-hidden`}>
-                                            <DisplayImage 
-                                                imageTitle={formattedGameName + '_' + formatUnderscoreName(removeSpecialCharacters(favorite || ''))}
-                                                path={imagePath}
-                                                className="w-full h-full object-cover"
-                                                alt={favorite || ''}
-                                                fallbackText={favorite}
-                                            />
+                                    <HoverImagePreview
+                                        key={index}
+                                        imageTitle={characterImageTitle}
+                                        imagePath={imagePath}
+                                        characterName={favorite || ''}
+                                        previewSize="large"
+                                    >
+                                        <div key={index} className="text-center">
+                                            <div className={`w-full h-40 bg-gradient-to-br ${gradients[index]} rounded-lg flex items-center justify-center mb-2 shadow-sm overflow-hidden hover:shadow-lg transition-shadow duration-200`}
+                                                onClick={() => handleFavoriteClick(index)}>
+                                                <DisplayImage 
+                                                    imageTitle={characterImageTitle}
+                                                    path={imagePath}
+                                                    className="w-full h-full object-cover"
+                                                    alt={favorite || ''}
+                                                    fallbackText={favorite}
+                                                />
+                                            </div>
+                                            <p className="font-semibold text-gray-900 text-center">{favorite}</p>
                                         </div>
-                                        <p className="font-semibold text-gray-900 text-center">{favorite}</p>
-                                    </div>
-                                );
+                                    </HoverImagePreview>
+                )
                             })}
                         </div>
                     </div>
