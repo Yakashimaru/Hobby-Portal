@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Play, ChevronDown, ChevronUp, Check, RefreshCw, Gamepad2, Archive, X, Eye } from 'lucide-react';
 
 ////////// Types //////////
@@ -22,8 +22,8 @@ import {
 } from '../utils/gameFilters';
 
 ////////// Components //////////
-import GameDetailsSidebar from "../components/GameDetailsSidebar";
-import GameCard from '../components/GameCard';
+import GameDetailsSidebar from "../components/sidebars/GameDetailsSidebar";
+import GameCard from '../components/cards/GameCard';
 
 // Types for better type safety
 type ArchiveFilter = 'all' | 'completed' | 'dropped';
@@ -77,6 +77,14 @@ const VisualNovel = () => {
         [games, archiveFilter]
     );
 
+    const handleGameClick = useCallback((game: Game) => {
+        setSelectedGame(game);
+    }, []);
+
+    const handleCloseSidebar = useCallback(() => {
+        setSelectedGame(null);
+    }, []);
+
     const getRatingRangeColor = (range: string): string => {
         return ratingRangeColors[range] || 'border-gray-400 bg-gray-50';
     };
@@ -94,6 +102,8 @@ const VisualNovel = () => {
         5: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5',
         6: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6'
     };
+
+    const isSidebarVisible = !!selectedGame;
 
     // Loading state
     if (loading) {
@@ -129,7 +139,7 @@ const VisualNovel = () => {
     return (
         <>
             <div className={`min-h-screen bg-gray-50 p-6 transition-all duration-300 ${
-                selectedGame ? 'pr-80' : ''
+                isSidebarVisible ? 'pr-80' : ''
             }`}>                
                 <div className="w-full max-w-none px-4">
                     <div className="mb-8">
@@ -243,7 +253,7 @@ const VisualNovel = () => {
                                                                     key={game.id} 
                                                                     game={game}
                                                                     statusColor={getStatusColor(game.status)}
-                                                                    onGameClick={setSelectedGame}
+                                                                    onGameClick={handleGameClick}
                                                                     currentTab={currentTab}
                                                                 />
                                                             ))}
@@ -291,7 +301,7 @@ const VisualNovel = () => {
                                                                 key={game.id} 
                                                                 game={game}
                                                                 statusColor={getStatusColor(game.status)}
-                                                                onGameClick={setSelectedGame}
+                                                                onGameClick={handleGameClick}
                                                                 currentTab={currentTab}
                                                             />
                                                         ))}
@@ -346,7 +356,7 @@ const VisualNovel = () => {
                                                                     key={game.id} 
                                                                     game={game}
                                                                     statusColor={getStatusColor(game.status)}
-                                                                    onGameClick={setSelectedGame}
+                                                                    onGameClick={handleGameClick}
                                                                     currentTab={currentTab}
                                                                 />
                                                             ))}
@@ -366,7 +376,7 @@ const VisualNovel = () => {
                                                 key={game.id} 
                                                 game={game}
                                                 statusColor={getStatusColor(game.status)}
-                                                onGameClick={setSelectedGame}
+                                                onGameClick={handleGameClick}
                                                 currentTab={currentTab}
                                             />
                                         ))}
@@ -454,7 +464,7 @@ const VisualNovel = () => {
                                                         key={game.id} 
                                                         game={game}
                                                         statusColor={getStatusColor(game.status)}
-                                                        onGameClick={setSelectedGame}
+                                                        onGameClick={handleGameClick}
                                                         currentTab={currentTab}
                                                     />
                                                 ))}
@@ -475,7 +485,7 @@ const VisualNovel = () => {
                                                         key={game.id} 
                                                         game={game}
                                                         statusColor={getStatusColor(game.status)}
-                                                        onGameClick={setSelectedGame}
+                                                        onGameClick={handleGameClick}
                                                         currentTab={currentTab}
                                                     />
                                                 ))}
@@ -493,7 +503,7 @@ const VisualNovel = () => {
                                             key={game.id} 
                                             game={game}
                                             statusColor={getStatusColor(game.status)}
-                                            onGameClick={setSelectedGame}
+                                            onGameClick={handleGameClick}
                                             currentTab={currentTab}
                                         />
                                     ))}
@@ -516,7 +526,7 @@ const VisualNovel = () => {
             <GameDetailsSidebar 
                 game={selectedGame} 
                 isVisible={!!selectedGame}
-                onClose={() => setSelectedGame(null)}
+                onClose={handleCloseSidebar}
                 statusColor={selectedGame ? getStatusColor(selectedGame.status) : ''}
             />
         </>
