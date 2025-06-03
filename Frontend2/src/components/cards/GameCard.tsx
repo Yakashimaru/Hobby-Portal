@@ -5,15 +5,17 @@ import { Star, Calendar, RefreshCw, Check, Play } from 'lucide-react';
 import { checkForUpdate } from '../../utils/checkForUpdate';
 import Card from './Card';
 import { formatUnderscoreName, removeSpecialCharacters } from '../../utils/formatting';
+import { gameService } from '../../services/gameService';
 
 interface GameCardProps {
     game: Game;
     onGameClick: (game: Game) => void;
     currentTab: string;
     statusColor: string;
+    onSilentRefetch?: () => void; // Optional callback for refetching data
 }
 
-const GameCard = ({ game, onGameClick, currentTab, statusColor }: GameCardProps) => {
+const GameCard = ({ game, onGameClick, currentTab, statusColor, onSilentRefetch }: GameCardProps) => {
     const [isHovered, setIsHovered] = useState(false);
 
     const imagePath = "../assets/images/visual_novel/";
@@ -61,9 +63,14 @@ const GameCard = ({ game, onGameClick, currentTab, statusColor }: GameCardProps)
                     <div className="absolute bottom-2 right-2 flex gap-1">
                         <button 
                             className="bg-blue-500 hover:bg-blue-600 text-white w-8 h-8 rounded-full shadow-lg transition-all duration-200 flex items-center justify-center"
-                            onClick={(e) => {
+                            onClick={async (e) => {
                                 e.stopPropagation();
-                                console.log('Mark as played:', game.game);
+                                try {
+                                    await gameService.markAsPlayed(game);
+                                    onSilentRefetch?.(); // Refresh data if callback provided
+                                } catch (error) {
+                                    console.error('Failed to mark game as played:', error);
+                                }
                             }}
                             title="Mark as Played"
                         >
