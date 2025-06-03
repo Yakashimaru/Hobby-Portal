@@ -21,6 +21,8 @@ import {
     categorizeOngoingGamesByRating 
 } from '../utils/gameFilters';
 
+
+
 import { formatUnderscoreName, removeSpecialCharacters } from '../utils/formatting';
 
 ////////// Components //////////
@@ -43,7 +45,7 @@ const VisualNovel = () => {
     const [currentTab, setCurrentTab] = useState<CurrentTab>('active');
     const [selectedGame, setSelectedGame] = useState<Game | null>(null);
 
-    const { games, loading, error, refetch } = getGameData(`${import.meta.env.VITE_API_BASE_URL}/getVisualNovel`)
+    const { games, loading, error, refetch, silentRefetch } = getGameData(`${import.meta.env.VITE_API_BASE_URL}/getVisualNovel`)
 
     const [galleryOpen, setGalleryOpen] = useState(false);
     const [galleryGame, setGalleryGame] = useState<Game | null>(null);
@@ -269,6 +271,7 @@ const VisualNovel = () => {
                                                                     statusColor={getStatusColor(game.status)}
                                                                     onGameClick={handleGameClick}
                                                                     currentTab={currentTab}
+                                                                    onSilentRefetch={silentRefetch}
                                                                 />
                                                             ))}
                                                         </div>
