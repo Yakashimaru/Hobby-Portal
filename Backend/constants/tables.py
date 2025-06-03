@@ -3,7 +3,6 @@ VALID_TABLES = {
     "games": "games",
     "multigames": "multigames", 
     "visualnovel": "visualnovel",
-    "uservisualnovel": "uservisualnovel",
     "kpop": "kpop",
     "figurine": "figurine"
 }
@@ -20,7 +19,7 @@ VN_SORTBY_ORDER = """
 ORDER BY
     CASE 
         WHEN status = 'Ongoing' THEN 1
-        WHEN status = 'Soon' THEN 2
+        WHEN status = 'Watchlist' THEN 2
         WHEN status = 'Completed' THEN 3
         WHEN status = 'Abandoned' THEN 4
         WHEN status = 'Dropped' THEN 5
@@ -29,3 +28,8 @@ ORDER BY
     rating DESC NULLS LAST,
     game ASC
 """.replace("\n", "").strip()
+
+VALID_VISUALNOVEL_FIELDS = [    'game', 'rating', 'story', 'renders', 'animations', 'scenes', 
+                               'fav_1', 'fav_2', 'fav_3', 'year', 'developer', 'genre_1', 'genre_2',
+                               'status', 'last_played', 'last_updated', 'last_played_ver', 'last_updated_ver'
+                            ]

@@ -16,10 +16,10 @@ try:
     # Import modules:
     from ..common.handle_exceptions import simple_exception, json_exception
     # User agents
-    from ..settings.user_agents import USER_AGENTS
+    from ..constants.user_agents import USER_AGENTS
 except:
     from common.handle_exceptions import simple_exception, json_exception
-    from settings.user_agents import USER_AGENTS
+    from constants.user_agents import USER_AGENTS
 
 app = Flask(__name__)
 CORS(app)

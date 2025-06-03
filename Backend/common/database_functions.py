@@ -3,11 +3,11 @@
 from flask import Flask, request, jsonify
 
 try: 
-    from ..settings.database_connection import connect_to_database
+    from .database_connection import connect_to_database
     from ..common.handle_exceptions import internal_error_exception
     from ..common.data_functions import convert_keys_values_to_string
 except:
-    from settings.database_connection import connect_to_database
+    from database_connection import connect_to_database
     from common.handle_exceptions import internal_error_exception
     from common.data_functions import convert_keys_values_to_string
 
@@ -16,12 +16,14 @@ def dict_result(columns, rows):
     return [dict(zip(columns, row)) for row in rows]
 
 ##### GET function #####
-def get_database(table_name):
+def get_database(table_name, columns_order = None, sort_by_clause = None):
     try:
         conn = connect_to_database()
         cur = conn.cursor()
+
+        columns_order = columns_order.strip() if columns_order else "*"
         
-        sql_query = f"SELECT * FROM {table_name}"
+        sql_query = f"SELECT {columns_order} FROM {table_name} {sort_by_clause}"
         cur.execute(sql_query)
 
         rows = cur.fetchall()
@@ -131,32 +133,44 @@ def delete_database(table_name, data):
         conn = connect_to_database()
         cur = conn.cursor()
 
-        where_clause, where_values = get_keys_and_values(data)
+        # Build the WHERE clause dynamically
+        where_conditions = []
+        where_values = []
 
-        # Retrieve the data to be deleted
-        select_query = f"SELECT * FROM {table_name} WHERE {where_clause} = %s"
-        cur.execute(select_query, (where_values,))
+        for key, value in data.items():
+            where_conditions.append(f"{key} = %s")
+            where_values.append(value)
+
+        where_clause = ' AND '.join(where_conditions)
+
+        # Retrieve the data to be deleted (for logging/confirmation)
+        select_query = f"SELECT * FROM {table_name} WHERE {where_clause}"
+        cur.execute(select_query, where_values)
         deleted_data = cur.fetchone()
 
-        #Execute the delete query
-        sql_query = f"DELETE FROM {table_name} WHERE {where_clause} = %s"
-        cur.execute(sql_query, (where_values,))
+         # Execute the delete query
+        sql_query = f"DELETE FROM {table_name} WHERE {where_clause}"
+        cur.execute(sql_query, where_values)
 
-        #cur.execute("DELETE FROM datacamp_courses WHERE course_name = 'Introduction to SQL'")
+        # Get number of affected rows
+        rows_affected = cur.rowcount
 
         conn.commit()
         cur.close()
         conn.close()
 
-        message = "Successfully deleted"
-        if deleted_data is None:
+        # Determine message based on results
+        if rows_affected == 0:
             message = "No data found to delete"
+        else:
+            message = f"Successfully deleted {rows_affected} record(s)"
 
         
         return jsonify({
             "code": 200,
             "message": message,
-            "data": deleted_data
+            "deleted_data": deleted_data,
+            "rows_affected": rows_affected
         }), 200
     
     except Exception as e:

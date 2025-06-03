@@ -1,5 +1,5 @@
 # Setup
-## Activateing venv
+## Activating venv
 CD to Hobby-Portal then:
 
 ```cli
