@@ -52,6 +52,7 @@ def get_last_updated():
                 }), response.status_code
                 
         except Exception as e:
+            print(f"Error processing request: {e} For game URL: {url}")
             return simple_exception(e)
     else:
         print(request.get_data())

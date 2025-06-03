@@ -63,27 +63,20 @@ class SmartScraper:
         site_type = SmartScraper.get_site_type(base_url) 
         
         if site_type == 'site_d':
-            base_referers.extend([
-                f"{base_url}/top-rated-games",
-                f"{base_url}/top-trending-games"
-            ])
+            paths = os.getenv('SITE_D_PATHS', '').split(',')
         elif site_type == 'site_f':
-            base_referers.extend([
-                f"{base_url}/forums/games.2/",
-                f"{base_url}/latest"
-            ])
+            paths = os.getenv('SITE_F_PATHS', '').split(',')
         elif site_type == 'site_i':
-            base_referers.extend([
-                f"{base_url}/games",
-                f"{base_url}/latest"
-            ])
+            paths = os.getenv('SITE_I_PATHS', '').split(',')
         else:
-            # Generic fallbacks that usually work
-            base_referers.extend([
-                f"{base_url}/games",
-                f"{base_url}/latest"
-            ])
+            # Generic fallbacks
+            paths = ['/games', '/latest']
         
+        # Add paths to base referers
+        for path in paths:
+            if path.strip():  # Skip empty strings
+                base_referers.append(f"{base_url}{path.strip()}")
+            
         return random.choice(base_referers)
     
     def check_rate_limit_response(self, response, url):
@@ -106,7 +99,7 @@ class SmartScraper:
         """Adaptive sleep that increases if rate limited"""
         if rate_limited:
             sleep_time = base_sleep * random.uniform(3, 6)
-            print(f"😴 Rate limited! Sleeping for {sleep_time:.1f}s")
+            print(f"Rate limited! Sleeping for {sleep_time:.1f}s")
         else:
             sleep_time = base_sleep * random.uniform(0.8, 1.2)
         
@@ -126,7 +119,7 @@ class SmartScraper:
             if time.time() - self.circuit_breaker['last_failure'] > 300:  # 5 minutes
                 self.circuit_breaker['is_open'] = False
                 self.circuit_breaker['failures'] = 0
-                print("🔄 Circuit breaker reset - trying again")
+                print("Circuit breaker reset - trying again")
                 return False
             return True
         
@@ -138,7 +131,7 @@ class SmartScraper:
             new_ua = random.choice(USER_AGENTS)
             self.session.headers['User-Agent'] = new_ua
             self.last_user_agent_change = time.time()
-            print(f"🔄 Rotated User-Agent: {new_ua[:50]}...")
+            print(f"Rotated User-Agent: {new_ua[:50]}...")
     
     def smart_get(self, url, sleep_low=3, sleep_high=8, timeout=30):
         """Main smart request function with all protections"""
@@ -161,15 +154,15 @@ class SmartScraper:
         if 'Referer' not in self.session.headers:
             new_referer = self.get_realistic_referer(base_url)
             self.session.headers['Referer'] = new_referer
-            print(f"🆕 Set new referer: {new_referer}")
+            print(f"Set new referer: {new_referer}")
         
-        # Maybe rotate user agent
+        # Maybe rotate user agent/
         self.maybe_rotate_user_agent()
         
         # Adaptive sleep with backoff
         base_sleep = random.uniform(sleep_low, sleep_high)
         actual_sleep = base_sleep * self.backoff_multiplier
-        print(f"😴 Sleeping {actual_sleep:.1f}s (backoff: {self.backoff_multiplier:.1f}x)")
+        print(f"Sleeping {actual_sleep:.1f}s (backoff: {self.backoff_multiplier:.1f}x)")
         time.sleep(actual_sleep)
         
         # Make the request
@@ -183,7 +176,7 @@ class SmartScraper:
             
             # Extra punishment sleep
             punishment_sleep = random.uniform(10, 20) * self.backoff_multiplier
-            print(f"🚨 Punishment sleep: {punishment_sleep:.1f}s")
+            print(f"Punishment sleep: {punishment_sleep:.1f}s")
             time.sleep(punishment_sleep)
             
             raise Exception(f"Rate limited - backoff: {self.backoff_multiplier:.1f}x")
