@@ -21,6 +21,9 @@ class GameDataParser:
             last_updated = last_updated_span.get_text(strip=True)
             post_title = post_title_h1.get_text(strip=True)
 
+            # DEBUG: Print the raw text to see problematic characters
+            print(f"DEBUG - Raw post_title: {repr(post_title)}")
+
             try:
                 last_updated_date = datetime.strptime(last_updated, "%B %d, %Y")
                 last_updated = last_updated_date.strftime("%Y-%m-%d")

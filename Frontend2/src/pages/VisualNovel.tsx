@@ -1,5 +1,7 @@
-import React, { useState, useMemo, useCallback } from 'react';
-import { Play, ChevronDown, ChevronUp, Check, RefreshCw, Gamepad2, Archive, X, Eye } from 'lucide-react';
+import { useState, useMemo, useCallback } from 'react';
+import { Play, ChevronDown, ChevronUp, Check, RefreshCw, 
+    Gamepad2, Archive, X, Eye
+} from 'lucide-react';
 
 ////////// Types //////////
 import type { Game } from 'types/game';
@@ -21,7 +23,8 @@ import {
     categorizeOngoingGamesByRating 
 } from '../utils/gameFilters';
 
-
+////////// Service //////////
+import { updateService, type UpdateAllProgress } from '../services/gameService';
 
 import { formatUnderscoreName, removeSpecialCharacters } from '../utils/formatting';
 
@@ -29,6 +32,7 @@ import { formatUnderscoreName, removeSpecialCharacters } from '../utils/formatti
 import GameDetailsSidebar from "../components/sidebars/GameDetailsSidebar";
 import GameCard from '../components/cards/GameCard';
 import FullscreenGallery from '../components/FullscreenGallery';
+import GameManagementToolbar from '../components/toolbars/GameManagementToolbar';
 
 // Types for better type safety
 type ArchiveFilter = 'all' | 'completed' | 'dropped';
@@ -45,11 +49,17 @@ const VisualNovel = () => {
     const [currentTab, setCurrentTab] = useState<CurrentTab>('active');
     const [selectedGame, setSelectedGame] = useState<Game | null>(null);
 
+    // Fetch game data using custom hook
     const { games, loading, error, refetch, silentRefetch } = getGameData(`${import.meta.env.VITE_API_BASE_URL}/getVisualNovel`)
 
+    // State for gallery functionality
     const [galleryOpen, setGalleryOpen] = useState(false);
     const [galleryGame, setGalleryGame] = useState<Game | null>(null);
     const [galleryIndex, setGalleryIndex] = useState(0);
+
+    // Update and dropdown features
+    const [isUpdating, setIsUpdating] = useState(false);
+    const [updateProgress, setUpdateProgress] = useState<UpdateAllProgress | null>(null);
 
     // Pass a function to open gallery from sidebar
     const handleOpenGallery = (game: Game, index: number) => {
@@ -150,6 +160,30 @@ const VisualNovel = () => {
         );
     }
 
+    const handleUpdateAll = async () => {
+        setIsUpdating(true);
+        setUpdateProgress(null);
+        
+        try {
+            const gamesToUpdate = games.filter(game => 
+                game.status === 'Ongoing' || game.status === 'Watchlist'
+            );
+
+            await updateService.updateAllGames(gamesToUpdate, (progress) => {
+                setUpdateProgress(progress);
+                silentRefetch(); // Refresh UI after each game
+            });
+            
+            console.log('Update all completed successfully');
+            
+        } catch (error: any) {  // Fix the 'unknown' error type
+            console.error('Update all failed:', error.message || error);
+        } finally {
+            setIsUpdating(false);
+            setUpdateProgress(null);
+        }
+    };
+
     const { activeGames, ongoingGames, watchlistGames, completedGames, droppedGames, categorizedOngoing } = computedData;
 
     return (
@@ -192,41 +226,19 @@ const VisualNovel = () => {
                     {currentTab === 'active' && (
                         <div>
                             {/* Active Filter */}
-                            <div className="flex items-center space-x-4 mb-6">
-                                <span className="text-sm text-gray-600 font-medium">Show:</span>
-                                <button
-                                    onClick={() => setActiveFilter('all')}
-                                    className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                                        activeFilter === 'all' 
-                                            ? 'bg-gray-700 text-white' 
-                                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                                    }`}
-                                >
-                                    All
-                                </button>
-                                <button
-                                    onClick={() => setActiveFilter('ongoing')}
-                                    className={`px-3 py-1 rounded-full text-sm transition-colors flex items-center ${
-                                        activeFilter === 'ongoing' 
-                                            ? 'bg-blue-600 text-white' 
-                                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                                    }`}
-                                >
-                                    <Play className="w-3 h-3 mr-1" />
-                                    Ongoing ({ongoingGames.length})
-                                </button>
-                                <button
-                                    onClick={() => setActiveFilter('watchlist')}
-                                    className={`px-3 py-1 rounded-full text-sm transition-colors flex items-center ${
-                                        activeFilter === 'watchlist' 
-                                            ? 'bg-yellow-600 text-white' 
-                                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                                    }`}
-                                >
-                                    <Eye className="w-3 h-3 mr-1" />
-                                    Watchlist ({watchlistGames.length})
-                                </button>
-                            </div>
+                            <GameManagementToolbar
+                                activeFilter={activeFilter}
+                                onFilterChange={setActiveFilter}
+                                ongoingCount={ongoingGames.length}
+                                watchlistCount={watchlistGames.length}
+                                onUpdateAll={handleUpdateAll}  // Just pass the function reference
+                                isUpdating={isUpdating}
+                                updateProgress={updateProgress ? {
+                                    total: updateProgress.total,
+                                    completed: updateProgress.completed,
+                                    current: updateProgress.current
+                                } : null}
+                            />
 
                             {/* Active Content */}
                             <div className="space-y-8">

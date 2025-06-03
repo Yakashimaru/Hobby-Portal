@@ -6,8 +6,6 @@ import type { Game } from 'types/game';
 
 import Sidebar from './Sidebar';
 import HoverImagePreview from '../HoverImagePreview';
-import FullscreenGallery from '../FullscreenGallery';
-
 import { formatUnderscoreName, removeSpecialCharacters } from '../../utils/formatting';
 
 interface GameDetailsSidebarProps {
@@ -30,7 +28,6 @@ const GameDetailsSidebar: React.FC<GameDetailsSidebarProps> = ({
     const favorites = [game.fav_1, game.fav_2, game.fav_3].filter(Boolean);
 
     const imagePath = "../assets/images/visual_novel/";
-    const formattedGameName = formatUnderscoreName(removeSpecialCharacters(game.game));
 
     const handleFavoriteClick = (index: number) => {
         onOpenGallery(game, index);
