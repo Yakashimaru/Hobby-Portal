@@ -22,6 +22,7 @@ import {
     getArchiveGames,
     categorizeOngoingGamesByRating 
 } from '../utils/gameFilters';
+import { checkForUpdate } from '../utils/checkForUpdate';
 
 ////////// Service //////////
 import { updateService, type UpdateAllProgress } from '../services/gameService';
@@ -33,6 +34,7 @@ import GameDetailsSidebar from "../components/sidebars/GameDetailsSidebar";
 import GameCard from '../components/cards/GameCard';
 import FullscreenGallery from '../components/FullscreenGallery';
 import GameManagementToolbar from '../components/toolbars/GameManagementToolbar';
+import UpdatesSection from '../components/UpdateSection';
 
 // Types for better type safety
 type ArchiveFilter = 'all' | 'completed' | 'dropped';
@@ -195,6 +197,16 @@ const VisualNovel = () => {
                     <div className="mb-8">
                         <h1 className="text-3xl font-bold text-gray-900 mb-6">Visual Novel Collection</h1>
                         
+                        {/* Updates Section - Add this */}
+                        <UpdatesSection
+                            gamesWithUpdates={games.filter(
+                                (game) =>
+                                checkForUpdate(game) && (game.status === 'Ongoing' || game.status === 'Watchlist')
+                            )}
+                            onGameClick={handleGameClick}
+                        />
+
+
                         {/* Main Tabs */}
                         <div className="flex space-x-4 mb-6">
                             <button

@@ -118,19 +118,45 @@ const GameDetailsSidebar: React.FC<GameDetailsSidebarProps> = ({
                 )}
 
                 {/* Version Tracking - Minimal */}
-                <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                    <h4 className="font-medium text-gray-800 mb-2 flex items-center justify-center text-sm">
+                <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-4 border border-gray-200 shadow-sm">
+                    <h4 className="font-medium text-gray-800 mb-3 flex items-center justify-center text-sm">
                         <Calendar className="w-4 h-4 mr-2 text-gray-600" />
                         Version Tracking
                     </h4>
-                    <div className="space-y-2 text-xs">
-                        <div className="flex justify-between items-center">
-                            <span className="text-gray-600">Played:</span>
-                            <span className="font-semibold text-blue-600">{game.last_played_ver || 'N/A'}</span>
+                    
+                    <div className="space-y-3">
+                        {/* Last Played Section */}
+                        <div className="bg-white rounded-md p-3 border-l-4 border-blue-400">
+                            <div className="flex items-center justify-between mb-1">
+                                <span className="text-xs font-medium text-blue-700 uppercase tracking-wide">Last Played</span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                                <div>
+                                    <span className="text-gray-500 block">Date:</span>
+                                    <span className="font-semibold text-blue-600">{game.last_played || 'N/A'}</span>
+                                </div>
+                                <div>
+                                    <span className="text-gray-500 block">Version:</span>
+                                    <span className="font-semibold text-blue-600">{game.last_played_ver || 'N/A'}</span>
+                                </div>
+                            </div>
                         </div>
-                        <div className="flex justify-between items-center">
-                            <span className="text-gray-600">Latest:</span>
-                            <span className="font-semibold text-green-600">{game.last_updated_ver || 'N/A'}</span>
+
+                        {/* Latest Update Section */}
+                        <div className="bg-white rounded-md p-3 border-l-4 border-green-400">
+                            <div className="flex items-center justify-between mb-1">
+                                <span className="text-xs font-medium text-green-700 uppercase tracking-wide">Latest Update</span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                                <div>
+                                    <span className="text-gray-500 block">Date:</span>
+                                    <span className="font-semibold text-green-600">{game.last_updated || 'N/A'}</span>
+                                </div>
+                                <div>
+                                    <span className="text-gray-500 block">Version:</span>
+                                    <span className="font-semibold text-green-600">{game.last_updated_ver || 'N/A'}</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
