@@ -59,7 +59,7 @@ const GameCard = ({ game, onGameClick, currentTab, statusColor, onSilentRefetch 
                 </div>
 
                 {/* Floating buttons on hover - Option 4 */}
-                {isHovered && currentTab === 'active' && (
+                {isHovered && game.status !== 'Dropped' && (
                     <div className="absolute bottom-2 right-2 flex gap-1">
                         <button 
                             className="bg-blue-500 hover:bg-blue-600 text-white w-8 h-8 rounded-full shadow-lg transition-all duration-200 flex items-center justify-center"
