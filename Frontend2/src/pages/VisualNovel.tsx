@@ -70,6 +70,11 @@ const VisualNovel = () => {
         setGalleryOpen(true);
     };
 
+    // Refetch data when a game is added
+    const handleGameAdded = useCallback((newGame: Game) => {
+        silentRefetch(); 
+    }, [silentRefetch]);
+
     // Memoized computed values for better performance
     const computedData = useMemo(() => {
         if (!games.length) {
@@ -250,6 +255,7 @@ const VisualNovel = () => {
                                     completed: updateProgress.completed,
                                     current: updateProgress.current
                                 } : null}
+                                onGameAdded={handleGameAdded}
                             />
 
                             {/* Active Content */}
