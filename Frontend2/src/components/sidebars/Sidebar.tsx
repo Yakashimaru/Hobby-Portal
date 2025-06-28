@@ -5,12 +5,12 @@ interface SidebarProps {
     children: React.ReactNode;
     isVisible: boolean;
     onClose: () => void;
-    title: string;
-    subtitle?: string;
-    year?: number;
-    rating?: number;
-    status?: string;
-    statusColor?: string;
+    title: React.ReactNode;
+    subtitle?: React.ReactNode;
+    year?: React.ReactNode;
+    rating?: React.ReactNode;
+    status?: React.ReactNode;
+    statusColor?: React.ReactNode;
 }
 
 const Sidebar = ({ children, isVisible, onClose, title, subtitle, year , rating, status, statusColor}: SidebarProps) => {
