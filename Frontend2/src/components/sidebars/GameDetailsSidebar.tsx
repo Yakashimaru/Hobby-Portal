@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Heart, Edit3, Save, X} from 'lucide-react';
+import { Heart, Edit3, Save, X, Trash2} from 'lucide-react';
 
 import DisplayImage from '../DisplayImage';
 import type { Game } from 'types/game';
@@ -15,6 +15,7 @@ interface GameDetailsSidebarProps {
     onClose: () => void;
     statusColor: string;
     onOpenGallery: (game: Game, index: number) => void;
+    onGameDeleted?: () => void;
     onSilentRefetch?: () => void;
 }
 
@@ -24,6 +25,7 @@ const GameDetailsSidebar: React.FC<GameDetailsSidebarProps> = ({
     onClose, 
     statusColor,
     onOpenGallery,
+    onGameDeleted,
     onSilentRefetch
 }) => {  
     const [isEditing, setIsEditing] = useState(false);
@@ -87,7 +89,8 @@ const GameDetailsSidebar: React.FC<GameDetailsSidebarProps> = ({
                 fav_2: editData.fav_2,
                 fav_3: editData.fav_3,
                 genre_1: editData.genre_1,
-                genre_2: editData.genre_2
+                genre_2: editData.genre_2,
+                src_f:editData.src_f
             };
 
             await fetchRequest(`${API_BASE_URL}/updateVN/${game.id}`, 'PUT', updatePayload);
@@ -112,6 +115,37 @@ const GameDetailsSidebar: React.FC<GameDetailsSidebarProps> = ({
     const updateEditField = <K extends keyof Game>(field: K, value: Game[K]) => {
         if (editData) {
             setEditData({ ...editData, [field]: value });
+        }
+    };
+
+    // Delete handler
+    const handleDelete = async () => {
+        if (!game) return;
+        
+        const confirmMessage = `Are you sure you want to delete "${game.game}"?\n\nThis action cannot be undone.`;
+        
+        if (window.confirm(confirmMessage)) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/deleteVisualNovel`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        game: game.game
+                    })
+                });
+                
+                if (response.ok) {
+                    onClose(); // Close sidebar immediately after successful delete
+                    onGameDeleted?.(); // Refresh the game list
+                } else {
+                    alert('Failed to delete game. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error deleting game:', error);
+                alert('An error occurred while deleting the game.');
+            }
         }
     };
     
@@ -440,9 +474,33 @@ const GameDetailsSidebar: React.FC<GameDetailsSidebarProps> = ({
                                 />
                             </div>
                         </div>
+
+                        {/* For sources */}
+                        <div>
+                            <label className="block text-xs text-gray-600 mb-1">Source f</label>
+                            <input 
+                                value={editData.src_f || ''}
+                                onChange={(e) => updateEditField('src_f', e.target.value)}
+                                className="w-full border border-gray-300 rounded px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
+                                placeholder="Source ID"
+                            />
+                        </div>
                     </div>
                 )}
             </div>
+
+            {isEditing && (
+                <div className="p-4">
+                    <button
+                        onClick={handleDelete}
+                        className="w-full bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg transition-colors flex items-center justify-center"
+                    >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Delete Game
+                    </button>
+                    <p className="text-xs text-gray-500 text-center mt-1">This action cannot be undone</p>
+                </div>
+            )}
         </Sidebar>
     );
 };

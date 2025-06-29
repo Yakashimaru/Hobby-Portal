@@ -78,9 +78,17 @@ const GameCard = ({ game, onGameClick, currentTab, statusColor, onSilentRefetch 
                         </button>
                         <button 
                             className="bg-green-500 hover:bg-green-600 text-white w-8 h-8 rounded-full shadow-lg transition-all duration-200 flex items-center justify-center"
-                            onClick={(e) => {
+                            onClick={async (e) => {
                                 e.stopPropagation();
-                                console.log('Check for updates:', game.game);
+                                try{
+                                    console.log('Updating game:', game.game);
+                                    await gameService.updateSingleGame(game);
+                                    onSilentRefetch?.();
+                                    console.log('Game updated successfully');
+                                } catch (error){
+                                    console.log('Failed to update game:', error);
+                                }
+                                
                             }}
                             title="Check for Updates"
                         >

@@ -26,6 +26,7 @@ export interface Game {
     // Additional metadata
     genre_1?: string;
     genre_2?: string;
+    src_f?: string;
 }
 
 export interface GameCategory {

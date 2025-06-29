@@ -32,8 +32,6 @@ const HoverImagePreview: React.FC<HoverImagePreviewProps> = ({
     const currentSize = sizes[previewSize];
 
     const handleMouseEnter = () => {
-        console.log('Mouse entered, showing preview for:', characterName);
-
         if (containerRef.current) {
             const rect = containerRef.current.getBoundingClientRect();
             
@@ -61,7 +59,6 @@ const HoverImagePreview: React.FC<HoverImagePreviewProps> = ({
     };
 
     const handleMouseLeave = () => {
-        console.log('Mouse left, hiding preview for:', characterName);
         setIsHovered(false);
     };
 
