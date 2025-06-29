@@ -21,7 +21,7 @@ interface ScrapedData {
 const createEmptyGame = (): Partial<Game> => ({
   game: '',
   developer: '',
-  status: 'Watchlist',
+  status: 'Ongoing',
   last_played: new Date().toISOString().split('T')[0],
 });
 
@@ -105,7 +105,7 @@ const AddGameSidebar: React.FC<AddGameSidebarProps> = ({ isVisible, onClose, onG
     try {
       const gameData = {
         ...formData,
-        status: formData.status || 'Watchlist',
+        status: formData.status || 'Ongoing',
         last_played: formData.last_played || new Date().toISOString().split('T')[0],
       };
 
@@ -238,7 +238,7 @@ const AddGameSidebar: React.FC<AddGameSidebarProps> = ({ isVisible, onClose, onG
                 type="url"
                 value={urlInput}
                 onChange={(e) => setUrlInput(e.target.value)}
-                placeholder="https://redacted-site.com/threads/..."
+                placeholder="https://"
                 className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm"
               />
               <button
@@ -351,7 +351,7 @@ const AddGameSidebar: React.FC<AddGameSidebarProps> = ({ isVisible, onClose, onG
                 Status *
               </label>
               <select 
-                value={formData.status || 'Watchlist'}
+                value={formData.status || 'Ongoing'}
                 onChange={(e) => updateFormField('status', e.target.value as Game['status'])}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
               >

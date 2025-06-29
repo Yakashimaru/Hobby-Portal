@@ -85,8 +85,6 @@ class SmartScraper:
             response.status_code in [429, 503, 502],
             'rate limit' in response.text.lower(),
             'too many requests' in response.text.lower(),
-            'slow down' in response.text.lower(),
-            'blocked' in response.text.lower(),
             len(response.text) < 100,  # Suspiciously short response
         ]
         

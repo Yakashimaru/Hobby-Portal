@@ -576,6 +576,7 @@ const VisualNovel = () => {
                 onClose={handleCloseSidebar}
                 statusColor={selectedGame ? getStatusColor(selectedGame.status) : ''}
                 onOpenGallery={handleOpenGallery}
+                onGameDeleted={silentRefetch}
                 onSilentRefetch={silentRefetch}
             />
 
