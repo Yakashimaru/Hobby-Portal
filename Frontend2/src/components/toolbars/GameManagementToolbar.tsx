@@ -95,7 +95,7 @@ const GameManagementToolbar = ({
 
                     {/* Action Buttons */}
                     <div className="flex items-center space-x-3">
-                        {/* Cards per row selector - to match your image */}
+                        {/* Cards per row selector - to match image */}
                         <select className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option>6 per row</option>
                             <option>5 per row</option>

@@ -1,4 +1,5 @@
 import json
+import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
@@ -7,13 +8,14 @@ try:
     # Import modules:
     from ..common.handle_exceptions import simple_exception, json_exception
     from ..common.scraping.scraping_utils import SmartScraper
-    from ..common.scraping.game_data_parser import GameDataParser
+    from ..scrapers.vn_parsers.game_data_parser import GameDataParser
 except:
     from common.handle_exceptions import simple_exception, json_exception
     from common.scraping.scraping_utils import SmartScraper
-    from common.scraping.game_data_parser import GameDataParser
+    from Backend.scrapers.vn_parsers.game_data_parser import GameDataParser
 
-load_dotenv('Backend\.env.sites')
+env_sites_file = os.path.join('Backend', '.env.sites')
+load_dotenv(env_sites_file)
 
 app = Flask(__name__)
 CORS(app)
