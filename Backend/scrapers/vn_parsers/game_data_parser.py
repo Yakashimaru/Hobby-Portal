@@ -3,9 +3,9 @@ from datetime import datetime
 import re
 
 try:
-    from .scraping_utils import SmartScraper
+    from ...common.scraping.scraping_utils import SmartScraper
 except:
-    from scraping_utils import SmartScraper
+    from common.scraping.scraping_utils import SmartScraper
 
 class GameDataParser:
     """Site-specific parsing functions"""
