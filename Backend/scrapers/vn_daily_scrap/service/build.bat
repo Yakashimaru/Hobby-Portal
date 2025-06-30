@@ -27,4 +27,4 @@ echo.
 echo All operations completed successfully!
 echo Service installation complete!
 echo To test service: net start VNDailyScraper
-pause
+@REM pause
