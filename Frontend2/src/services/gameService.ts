@@ -191,7 +191,7 @@ export const updateService = {
 
         // Batch log all results at once (overwrites previous log)
         try {
-            await fetchRequest(`${API_BASE_URL}/logScrapper`, 'POST', {
+            await fetchRequest(`${VITE_API_LOGGER_URL}/logScrapper`, 'POST', {
                 batchData: logData,
                 timestamp: new Date().toISOString()
             });
