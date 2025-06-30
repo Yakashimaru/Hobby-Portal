@@ -90,6 +90,17 @@ class DailyScraperOrchestrator:
     def setup_summary_logging(self):
         self.summary_logger = setup_logger('summary', 'scraping_summary.log')
     
+    # Safe rating handling function
+    def safe_get_rating(self, game):
+        """Safely get rating as float, handling None/empty values"""
+        rating = game.get('rating')
+        if rating is None or rating == '' or rating == 'None':
+            return 0.0
+        try:
+            return float(rating)
+        except (ValueError, TypeError):
+            return 0.0
+    
     def run_batch_update(self, target_count=None):
         """Main batch update function using direct database/scraper calls"""
         if target_count is None:
@@ -245,104 +256,237 @@ class DailyScraperOrchestrator:
         
         # self.logger.info(f"Hardcoded selection: {len(selected_games)} games - {[g.get('game') for g in selected_games]}")
         # return selected_games
-        """Smart game selection with coverage - prevents repeats and ensures eventual full coverage"""
-        
+        """Smart game selection with GUARANTEED full coverage over time"""
+
+        # Debug: Check top games by rating
+        self.logger.info("Top 10 games by rating:")
+        sorted_by_rating = sorted(games, key=lambda g: self.safe_get_rating(g), reverse=True)
+        for i, game in enumerate(sorted_by_rating[:10]):
+            rating = self.safe_get_rating(game)
+            self.logger.info(f"  {i+1}. {game.get('game')} - Rating: {rating}")
+    
         # Configuration parameters
-        EXCLUSION_DAYS = 7
-        HIGH_PRIORITY_RATIO = 0.4   # 40% to top games
-        MEDIUM_PRIORITY_RATIO = 0.35 # 35% to medium games  
-        LOW_PRIORITY_RATIO = 0.25   # 25% to others
+        EXCLUSION_DAYS = 5
+        HIGH_PRIORITY_RATIO = 0.4   
+        MEDIUM_PRIORITY_RATIO = 0.35 
         MIN_RATING_HIGH = 7
         MIN_RATING_MEDIUM = 5
-        MIN_DAYS_HIGH = 30
-        MIN_DAYS_MEDIUM = 15
+        MIN_DAYS_SINCE_SCRAPE_HIGH = 21    
+        MIN_DAYS_SINCE_SCRAPE_MEDIUM = 7  
+        
+        # Coverage guarantee parameters
+        NEVER_SCRAPED_MIN_SLOTS = max(1, int(target_count * 0.1))  # At least 10% for never-scraped
+        STALE_GAME_THRESHOLD = 30  # Games not scraped in 30+ days get priority boost
         
         today = datetime.now().date()
-        exclusion_date = today - timedelta(days=EXCLUSION_DAYS)
         
-        # Step 1: Get recently scraped games (last 7 days)
-        recently_scraped_ids = self.get_recently_scraped_game_ids(exclusion_date)
+        # Step 1: Get scraping history for ALL games
+        scraping_history = self.get_scraping_history()
         
-        self.logger.info(f"Excluding {len(recently_scraped_ids)} recently scraped games (last {EXCLUSION_DAYS} days)")
+        # Step 2: Categorize ALL games by scraping status
+        never_scraped = []
+        recently_scraped = []  # Within exclusion period
+        stale_games = []       # Not recent, but not never
+        available_games = []   # All non-recent games
         
-        # Step 2: Separate available games from recently scraped
-        available_games = [game for game in games if game.get('id') not in recently_scraped_ids]
-        recently_scraped_games = [game for game in games if game.get('id') in recently_scraped_ids]
-        
-        self.logger.info(f"Available games: {len(available_games)}, Recently scraped: {len(recently_scraped_games)}")
-        
-        # Step 3: Categorize available games into priority buckets
-        high_priority = []
-        medium_priority = []
-        low_priority = []
-        
-        for game in available_games:
-            rating = float(game.get('rating', 0)) if game.get('rating') else 0
-            days_since_update = self.calculate_days_since_update(game)
+        for game in games:
+            game_id = game.get('id')
+            days_since_scrape = self.calculate_days_since_scrape(game, scraping_history)
             
-            if rating >= MIN_RATING_HIGH and days_since_update >= MIN_DAYS_HIGH:
-                high_priority.append(game)
-            elif rating >= MIN_RATING_MEDIUM and days_since_update >= MIN_DAYS_MEDIUM:
-                medium_priority.append(game)
-            else:
-                low_priority.append(game)
+            if days_since_scrape == 999:  # Never scraped
+                never_scraped.append(game)
+                available_games.append(game)
+            elif days_since_scrape <= EXCLUSION_DAYS:  # Recently scraped
+                recently_scraped.append(game)
+            elif days_since_scrape >= STALE_GAME_THRESHOLD:  # Stale games
+                stale_games.append(game)
+                available_games.append(game)
+            else:  # Regular available games
+                available_games.append(game)
+        
+        self.logger.info(f"Game categories - Never scraped: {len(never_scraped)}, "
+                        f"Recently scraped: {len(recently_scraped)}, "
+                        f"Stale (30+ days): {len(stale_games)}, "
+                        f"Total available: {len(available_games)}")
+        
+        # Step 3: GUARANTEE coverage - reserve slots for never-scraped games
+        selections = []
+        remaining_slots = target_count
+        
+        # PHASE 1: Mandatory never-scraped games (coverage guarantee)
+        if never_scraped and remaining_slots > 0:
+            # Sort never-scraped by rating (highest first)
+            never_scraped_sorted = sorted(never_scraped, 
+                                        key=lambda g: self.safe_get_rating(g), 
+                                        reverse=True)
+            
+            never_scraped_count = min(NEVER_SCRAPED_MIN_SLOTS, len(never_scraped), remaining_slots)
+            selected_never_scraped = never_scraped_sorted[:never_scraped_count]
+            selections.extend(selected_never_scraped)
+            remaining_slots -= len(selected_never_scraped)
+            
+            self.logger.info(f"COVERAGE GUARANTEE: Selected {len(selected_never_scraped)} never-scraped games")
+        
+        # PHASE 2: Priority boost for stale games
+        stale_boost_slots = min(int(remaining_slots * 0.2), len(stale_games))  # 20% for stale
+        if stale_games and stale_boost_slots > 0 and remaining_slots > 0:
+            # Sort stale games by rating and days since scrape
+            stale_games_sorted = sorted(stale_games, 
+                                    key=lambda g: (self.safe_get_rating(g), 
+                                                self.calculate_days_since_scrape(g, scraping_history)), 
+                                    reverse=True)
+            
+            selected_stale = [g for g in stale_games_sorted[:stale_boost_slots] if g not in selections]
+            selections.extend(selected_stale)
+            remaining_slots -= len(selected_stale)
+            
+            self.logger.info(f"STALE BOOST: Selected {len(selected_stale)} stale games")
+        
+        # PHASE 3: Regular priority buckets (from remaining available games)
+        if remaining_slots > 0:
+            # Remove already selected games from available pool
+            remaining_available = [g for g in available_games if g not in selections]
+            
+            # Categorize remaining games into priority buckets
+            high_priority = []
+            medium_priority = []
+            low_priority = []
+            
+            for game in remaining_available:
+                rating = self.safe_get_rating(game)
+                days_since_scrape = self.calculate_days_since_scrape(game, scraping_history)
+                
+                if rating >= MIN_RATING_HIGH and days_since_scrape >= MIN_DAYS_SINCE_SCRAPE_HIGH:
+                    high_priority.append(game)
+                elif rating >= MIN_RATING_MEDIUM and days_since_scrape >= MIN_DAYS_SINCE_SCRAPE_MEDIUM:
+                    medium_priority.append(game)
+                else:
+                    low_priority.append(game)
+            
+            # Calculate bucket targets based on remaining slots
+            high_target = int(remaining_slots * HIGH_PRIORITY_RATIO)
+            medium_target = int(remaining_slots * MEDIUM_PRIORITY_RATIO)
+            low_target = remaining_slots - high_target - medium_target
+            
+            # Select from buckets (oldest first within each bucket)
+            bucket_selections = []
+            
+            # High priority
+            if high_priority and high_target > 0:
+                high_sorted = sorted(high_priority, 
+                                key=lambda g: self.calculate_days_since_scrape(g, scraping_history), 
+                                reverse=True)
+                bucket_selections.extend(high_sorted[:high_target])
+            
+            # Medium priority
+            if medium_priority and medium_target > 0:
+                medium_sorted = sorted(medium_priority,
+                                    key=lambda g: self.calculate_days_since_scrape(g, scraping_history),
+                                    reverse=True)
+                bucket_selections.extend(medium_sorted[:medium_target])
+            
+            # Low priority
+            if low_priority and low_target > 0:
+                low_sorted = sorted(low_priority,
+                                key=lambda g: self.calculate_days_since_scrape(g, scraping_history),
+                                reverse=True)
+                bucket_selections.extend(low_sorted[:low_target])
+            
+            selections.extend(bucket_selections)
+            remaining_slots -= len(bucket_selections)
+            
+            self.logger.info(f"BUCKET SELECTION: Added {len(bucket_selections)} games from priority buckets")
         
         self.logger.info(f"Priority buckets - High: {len(high_priority)}, Medium: {len(medium_priority)}, Low: {len(low_priority)}")
-        
-        # Step 4: Calculate target counts for each bucket
-        high_target = int(target_count * HIGH_PRIORITY_RATIO)
-        medium_target = int(target_count * MEDIUM_PRIORITY_RATIO)
-        low_target = int(target_count * LOW_PRIORITY_RATIO)
-        
-        # Step 5: Select games from each bucket
-        selections = []
-        
-        # High priority selection
         if high_priority:
-            selected_high = random.sample(high_priority, min(high_target, len(high_priority)))
-            selections.extend(selected_high)
-            self.logger.info(f"Selected {len(selected_high)} high-priority games")
+            self.logger.info(f"High priority games: {[g.get('game') for g in high_priority[:5]]}")
+
+
+        # PHASE 4: Fill any remaining slots with oldest available games
+        if remaining_slots > 0:
+            remaining_available = [g for g in available_games if g not in selections]
+            if remaining_available:
+                # Sort by days since scrape (oldest first)
+                oldest_available = sorted(remaining_available,
+                                        key=lambda g: self.calculate_days_since_scrape(g, scraping_history),
+                                        reverse=True)
+                additional_games = oldest_available[:remaining_slots]
+                selections.extend(additional_games)
+                remaining_slots -= len(additional_games)
+                
+                self.logger.info(f"FILL REMAINING: Added {len(additional_games)} oldest available games")
         
-        # Medium priority selection  
-        if medium_priority:
-            selected_medium = random.sample(medium_priority, min(medium_target, len(medium_priority)))
-            selections.extend(selected_medium)
-            self.logger.info(f"Selected {len(selected_medium)} medium-priority games")
-        
-        # Low priority selection
-        if low_priority:
-            selected_low = random.sample(low_priority, min(low_target, len(low_priority)))
-            selections.extend(selected_low)
-            self.logger.info(f"Selected {len(selected_low)} low-priority games")
-        
-        # Step 6: Fill remaining slots if needed
-        remaining_needed = target_count - len(selections)
-        if remaining_needed > 0:
-            # First try to get more from available games that weren't selected
-            unselected_available = [g for g in available_games if g not in selections]
-            if unselected_available:
-                additional_from_available = random.sample(
-                    unselected_available, 
-                    min(remaining_needed, len(unselected_available))
-                )
-                selections.extend(additional_from_available)
-                remaining_needed = target_count - len(selections)
-                self.logger.info(f"Added {len(additional_from_available)} additional games from available pool")
+        # PHASE 5: Last resort - use recently scraped games if still need more
+        if remaining_slots > 0 and recently_scraped:
+            # Sort recently scraped by oldest first
+            recently_scraped_sorted = sorted(recently_scraped,
+                                        key=lambda g: self.calculate_days_since_scrape(g, scraping_history),
+                                        reverse=True)
+            fallback_games = recently_scraped_sorted[:remaining_slots]
+            selections.extend(fallback_games)
             
-            # If still need more, fall back to recently scraped games
-            if remaining_needed > 0 and recently_scraped_games:
-                fallback_games = random.sample(
-                    recently_scraped_games,
-                    min(remaining_needed, len(recently_scraped_games))
-                )
-                selections.extend(fallback_games)
-                self.logger.info(f"Added {len(fallback_games)} games from recently scraped (fallback)")
+            self.logger.info(f"FALLBACK: Added {len(fallback_games)} from recently scraped")
         
-        # Step 7: Final shuffle to avoid any ordering patterns
+        # Final shuffle to avoid patterns (but log the pre-shuffle selection for debugging)
+        self.logger.info(f"Pre-shuffle selection summary:")
+        self.logger.info(f"  Never scraped: {len([g for g in selections if self.calculate_days_since_scrape(g, scraping_history) == 999])}")
+        self.logger.info(f"  Stale (30+ days): {len([g for g in selections if 30 <= self.calculate_days_since_scrape(g, scraping_history) < 999])}")  # ← Updated
+        self.logger.info(f"  Recent (< 30 days): {len([g for g in selections if self.calculate_days_since_scrape(g, scraping_history) < 30])}")  # ← Updated
+        
         random.shuffle(selections)
         
-        self.logger.info(f"Final selection: {len(selections)} games with smart coverage logic")
+        self.logger.info(f"FINAL SELECTION: {len(selections)} games with guaranteed full coverage")
         return selections
+
+    def get_coverage_stats(self):
+        """Get statistics about scraping coverage - useful for monitoring"""
+        try:
+            all_games = get_database('visualnovel')
+            if isinstance(all_games, dict) and 'error' in all_games:
+                return {'error': 'Database connection failed'}
+            
+            # Filter to scrapeable games only
+            scrapeable_games = self.filter_scrapeable_games(all_games)
+            self.logger.info(f"Top 10 scrapeable games by rating:")
+            sorted_by_rating = sorted(scrapeable_games, key=lambda g: self.safe_get_rating(g), reverse=True)
+            for i, game in enumerate(sorted_by_rating[:10]):
+                rating = self.safe_get_rating(game)
+                self.logger.info(f"  {i+1}. {game.get('game', 'No Name')} - Rating: {rating} (raw: {game.get('rating')})")
+            scraping_history = self.get_scraping_history()
+            
+            today = datetime.now().date()
+            
+            stats = {
+                'total_scrapeable': len(scrapeable_games),
+                'never_scraped': 0,
+                'scraped_last_7_days': 0,
+                'scraped_last_15_days': 0,
+                'scraped_over_30_days_ago': 0,
+                'coverage_percentage': 0
+            }
+            
+            for game in scrapeable_games:
+                game_id = game.get('id')
+                if game_id in scraping_history:
+                    days_ago = (today - scraping_history[game_id]).days
+                    if days_ago <= 7:
+                        stats['scraped_last_7_days'] += 1
+                    elif days_ago <= 15:
+                        stats['scraped_last_15_days'] += 1
+                    elif days_ago >= 30:
+                        stats['scraped_over_30_days_ago'] += 1
+                else:
+                    stats['never_scraped'] += 1
+            
+            # Calculate coverage percentage
+            scraped_count = stats['total_scrapeable'] - stats['never_scraped']
+            if stats['total_scrapeable'] > 0:
+                stats['coverage_percentage'] = (scraped_count / stats['total_scrapeable']) * 100
+            
+            return stats
+            
+        except Exception as e:
+            return {'error': str(e)}
     
     def get_recently_scraped_game_ids(self, exclusion_date):
         """Get IDs of games scraped recently using SQLite state database"""
@@ -377,25 +521,63 @@ class DailyScraperOrchestrator:
         except Exception as e:
             self.logger.warning(f"Error checking recently scraped games: {e}")
             return set()
-    
-    def calculate_days_since_update(self, game):
-        """Calculate days since last update for a game"""
-        today = datetime.now().date()
         
-        if not game.get('last_updated'):
-            return 365  # Never updated = very old
-        
+    def get_scraping_history(self):
+        """Get scraping history for all games - returns dict of {game_id: last_scraped_date}"""
         try:
-            # Handle the TO_CHAR formatted date from database (DD/MM/YYYY)
-            date_str = game['last_updated']
-            if '/' in date_str:
-                day, month, year = date_str.split('/')
-                last_updated_date = datetime(int(year), int(month), int(day)).date()
-                return (today - last_updated_date).days
-        except Exception:
-            pass
+            state_db_path = get_database_path('daily_scraper_state.db')
+            
+            if not state_db_path.exists():
+                self.logger.info("No state database found - treating all games as never scraped")
+                return {}
+            
+            with sqlite3.connect(state_db_path) as conn:
+                # Check if the table exists first
+                cursor = conn.execute("""
+                    SELECT name FROM sqlite_master 
+                    WHERE type='table' AND name='game_scrape_log'
+                """)
+                
+                if not cursor.fetchone():
+                    self.logger.info("No scrape log table found - treating all games as never scraped")
+                    return {}
+                
+                # Get the most recent successful scrape date for each game
+                cursor = conn.execute("""
+                    SELECT game_id, MAX(scrape_date) as last_scraped
+                    FROM game_scrape_log 
+                    WHERE success = 1
+                    GROUP BY game_id
+                """)
+                
+                history = {}
+                for row in cursor.fetchall():
+                    game_id, date_str = row
+                    if game_id and date_str:
+                        # Convert string date back to date object
+                        try:
+                            history[game_id] = datetime.strptime(date_str, '%Y-%m-%d').date()
+                        except ValueError:
+                            # Handle different date formats if needed
+                            pass
+                
+                return history
+                
+        except Exception as e:
+            self.logger.warning(f"Error getting scraping history: {e}")
+            return {}
+    
+    def calculate_days_since_scrape(self, game, scraping_history):
+        """Calculate days since WE last scraped this game"""
+        today = datetime.now().date()
+        game_id = game.get('id')
         
-        return 365  # Default to very old if can't parse
+        if game_id in scraping_history:
+            last_scraped = scraping_history[game_id]
+            return (today - last_scraped).days
+        else:
+            # Never scraped = very high priority (999 days)
+            return 999
     
     def scrape_single_game(self, game):
         """Scrape a single game with fallback logic"""
