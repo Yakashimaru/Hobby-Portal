@@ -16,6 +16,7 @@ interface ScrapedData {
   last_updated: string;
   version: string;
   year: number;
+  src_f:number;
 }
 
 const createEmptyGame = (): Partial<Game> => ({
@@ -73,16 +74,20 @@ const AddGameSidebar: React.FC<AddGameSidebarProps> = ({ isVisible, onClose, onG
           developer: data.developer,
           last_updated: data.last_updated || '',
           version: data.version || '',
-          year: data.year || new Date().getFullYear()
+          year: data.year || new Date().getFullYear(),
+          src_f:data.src_f || ''
         };
         
         setScrapedData(scraped);
+
         setFormData(prev => ({
           ...prev,
           game: scraped.game,
           developer: scraped.developer,
           last_updated_ver: scraped.version,
-          year: scraped.year
+          last_updated: scraped.last_updated,
+          year: scraped.year,
+          ...(data.src_f && { src_f: data.src_f })
         }));
       } else {
         alert('Could not extract game data from this URL. Try manual entry instead.');
@@ -511,16 +516,58 @@ const AddGameSidebar: React.FC<AddGameSidebarProps> = ({ isVisible, onClose, onG
                   </div>
                 </div>
 
-                {/* Version */}
+                {/* Misc */}
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">Last Played Version</label>
-                  <input
-                    type="text"
-                    value={formData.last_played_ver || ''}
-                    onChange={(e) => updateFormField('last_played_ver', e.target.value)}
-                    placeholder="v1.0.0"
-                    className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
-                  />
+                  <div className="grid grid-cols-2 gap-2">
+                    {/* Version */}
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">Last Played Version</label>
+                      <input
+                        type="text"
+                        value={formData.last_updated_ver || ''}
+                        onChange={(e) => updateFormField('last_played_ver', e.target.value)}
+                        placeholder="v1.0.0"
+                        className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                      />
+                    </div>
+                    {/* Source f */}
+                    <div>
+                        <label className="block text-xs text-gray-600 mb-1">Source f</label>
+                        <input 
+                            type="text"
+                            value={formData.src_f || ''}
+                            onChange={(e) => updateFormField('src_f', e.target.value)}
+                            className="w-full border border-gray-300 rounded px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
+                            placeholder="Source ID"
+                        />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Genre */}
+                <div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">Genre 1</label>
+                      <input
+                        type="text"
+                        value={formData.genre_1 || ''}
+                        onChange={(e) => updateFormField('genre_1', e.target.value)}
+                        placeholder="Genre 1"
+                        className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                      />
+                    </div>
+                    <div>
+                        <label className="block text-xs text-gray-600 mb-1">Genre 2</label>
+                        <input 
+                            type="text"
+                            value={formData.genre_2 || ''}
+                            onChange={(e) => updateFormField('genre_2', e.target.value)}
+                            className="w-full border border-gray-300 rounded px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
+                            placeholder="Genre 2"
+                        />
+                    </div>
+                  </div>
                 </div>
               </div>
             )}

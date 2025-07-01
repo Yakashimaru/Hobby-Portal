@@ -241,8 +241,8 @@ const GameDetailsSidebar: React.FC<GameDetailsSidebarProps> = ({
             )}
 
             <div className="p-4 space-y-2">
-                {/* Individual Ratings - Compact Pills */}
-                {(currentGame.story || currentGame.renders || currentGame.animations || currentGame.scenes) && (
+                {/* Individual Ratings - Always show in edit mode or when ratings exist */}
+                {(isEditing || currentGame.story || currentGame.renders || currentGame.animations || currentGame.scenes) && (
                     <div className="flex flex-wrap gap-1 justify-center">
                         {/* Story Rating */}
                         <div className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-semibold whitespace-nowrap flex items-center">
@@ -314,8 +314,8 @@ const GameDetailsSidebar: React.FC<GameDetailsSidebarProps> = ({
                     </div>
                 )}
 
-                {/* Favorite Characters - Main Focus */}
-                {favorites.length > 0 && (
+                {/* Favorite Characters - Always show in edit mode or when favorites exist */}
+                {(isEditing || favorites.length > 0) && (
                     <div>
                         <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center justify-center">
                             <Heart className="w-5 h-5 mr-2 text-red-500" />
