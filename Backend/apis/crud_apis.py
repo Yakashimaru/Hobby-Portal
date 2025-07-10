@@ -5,13 +5,15 @@ import os, sys
 
 # Import modules:
 try:
-    from ..common.handle_exceptions import simple_exception, json_exception
+    from .. import config
+    from ..common.handle_exceptions import simple_exception, json_exception, invalid_fields_exception
     from ..common.database_functions import get_database, post_database, put_database, delete_database, get_database_inner_join
-    from ..constants.table_constants import VALID_TABLES, VN_TABLE_ORDER, VN_SORTBY_ORDER
+    from ..constants.tables import VALID_TABLES, VN_TABLE_ORDER, VN_SORTBY_ORDER, VALID_VISUALNOVEL_FIELDS
 except:
+    from config import config
     from common.handle_exceptions import simple_exception, json_exception
     from common.database_functions import get_database, post_database, put_database, delete_database, get_database_inner_join
-    from constants.table_constants import VALID_TABLES, VN_TABLE_ORDER, VN_SORTBY_ORDER
+    from constants.tables import VALID_TABLES, VN_TABLE_ORDER, VN_SORTBY_ORDER, VALID_VISUALNOVEL_FIELDS
 
 app = Flask(__name__)
 CORS(app)
@@ -47,17 +49,10 @@ def get_table_name(route_path):
 def get_data():
     try:
         table_name = get_table_name(request.path)
-
-        # For visual novel table
-        if table_name == "visualnovel":
-            return get_database_inner_join(
-                table_name, 
-                "uservisualnovel", 
-                "visualnovel.id = uservisualnovel.id", 
-                VN_TABLE_ORDER,
-                VN_SORTBY_ORDER)
         
-        # For other tables
+        if table_name == "visualnovel":
+            return get_database(table_name, VN_TABLE_ORDER, VN_SORTBY_ORDER)
+
         return get_database(table_name)
     
     except Exception as e:
@@ -100,15 +95,37 @@ def update_data():
             table_name = get_table_name(request.path)
             
             # If the data has an id field, update by id
-            if ("id" in data):
-                return put_database(table_name, data, "id")
-            else:
-                return put_database(table_name, data, "game")
+            # if ("id" in data):
+            #     return put_database(table_name, data, "id")
+            # else:
+            #     return put_database(table_name, data, "game")
+            
+            return put_database(table_name, data, "id")
 
         except Exception as e:
             return simple_exception(e)
     else:
         return json_exception(str(request.get_data()))
+    
+
+@app.route("/updateVN/<int:game_id>", methods=['PUT'])
+def update_vn(game_id):
+    data = request.get_json()
+    
+    # Split fields by table
+    visualnovel_fields = {k:v for k,v in data.items() 
+                        if k in VALID_VISUALNOVEL_FIELDS}
+    
+    # Check for invalid fields
+    invalid_fields = [field for field in data.keys() if field not in visualnovel_fields]
+    if invalid_fields:
+        return invalid_fields_exception(invalid_fields, visualnovel_fields)
+
+    # Update visualnovel table 
+    if visualnovel_fields:
+        return put_database('visualnovel', {**visualnovel_fields, 'id': game_id}, 'id')
+    
+    return jsonify({"message": "Game updated successfully"})
 
 #DELETE request to delete data from the database
 @app.route("/deleteGames", methods=['DELETE'])
@@ -121,7 +138,7 @@ def delete_data():
         try:
             data = request.get_json()
             table_name = get_table_name(request.path)
-
+            
             return delete_database(table_name, data)
         
         except Exception as e:

@@ -6,7 +6,7 @@ call activate
 
 REM run backend
 cd /d "%~dp0"
-start /min "Backend-CRUD" cmd /k py -m Backend.apis.crud_apis
+start /min "Backend-CRUD" cmd /k py -m Backend.apis.crud_apis test
 
 REM run scrapper
 cd /d "%~dp0"
