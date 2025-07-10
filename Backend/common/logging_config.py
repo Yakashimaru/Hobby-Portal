@@ -45,11 +45,7 @@ def setup_logger(name, log_filename, level=logging.INFO):
     
     log_dir = get_app_log_directory()
     
-    # Add date to filename if not already present
-    if datetime.now().strftime('%Y%m%d') not in log_filename:
-        name_part, ext = log_filename.rsplit('.', 1) if '.' in log_filename else (log_filename, 'log')
-        log_filename = f"{name_part}_{datetime.now().strftime('%Y%m%d')}.{ext}"
-    
+    # Use the filename as-is without adding date
     log_file = log_dir / log_filename
     
     # Create logger
@@ -59,7 +55,7 @@ def setup_logger(name, log_filename, level=logging.INFO):
     # Clear any existing handlers to avoid duplicates
     logger.handlers.clear()
     
-    # File handler
+    # File handler with append mode (default)
     file_handler = logging.FileHandler(log_file, encoding='utf-8')
     file_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
     file_handler.setFormatter(file_formatter)

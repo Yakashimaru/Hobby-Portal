@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Play, ChevronDown, RefreshCw, Eye, Settings, Plus, Globe } from 'lucide-react';
+import { Play, ChevronDown, RefreshCw, Eye, Zap, Settings, Plus, Globe } from 'lucide-react';
 import type { Game } from '../../types/game';
 import AddGameSidebar from '../sidebars/AddGameSidebar';
 
 interface GameManagementToolbarProps {
-    activeFilter: 'all' | 'ongoing' | 'watchlist';
-    onFilterChange: (filter: 'all' | 'ongoing' | 'watchlist') => void;
+    activeFilter: 'all' | 'ongoing' | 'watchlist' | 'new';
+    onFilterChange: (filter: 'all' | 'ongoing' | 'watchlist' | 'new') => void;
     ongoingCount: number;
     watchlistCount: number;
+    newCount: number;
     onUpdateAll: () => void;
     isUpdating: boolean;
     updateProgress?: { 
@@ -23,6 +24,7 @@ const GameManagementToolbar = ({
     onFilterChange,
     ongoingCount,
     watchlistCount,
+    newCount,
     onUpdateAll,
     isUpdating,
     updateProgress,
@@ -90,6 +92,17 @@ const GameManagementToolbar = ({
                         >
                             <Eye className="w-3 h-3 mr-1" />
                             Watchlist ({watchlistCount})
+                        </button>
+                        <button
+                            onClick={() => onFilterChange('new')}
+                            className={`px-3 py-1 rounded-full text-sm transition-colors flex items-center ${
+                                activeFilter === 'new' 
+                                    ? 'bg-yellow-600 text-white' 
+                                    : 'bg-white text-gray-700 hover:bg-gray-200'
+                            }`}
+                        >
+                            <Zap className="w-3 h-3 mr-1" />
+                            New ({newCount})
                         </button>
                     </div>
 

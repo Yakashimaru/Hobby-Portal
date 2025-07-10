@@ -41,6 +41,7 @@ const DisplayImage = ({ imageTitle, path, className, alt, fallbackText = "No Ima
             <img 
                 src={currentSrc}
                 alt={alt}
+                loading="lazy"
                 className={className}
                 onError={handleError}
             />

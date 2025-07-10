@@ -33,6 +33,20 @@ export const getArchiveGames = (games: Game[], archiveFilter: String) => {
     return [...getCompletedGames(games), ...getDroppedGames(games)];
 };
 
+export const getNewGames = (games: Game[]) => {
+    function parseDate(dateStr?: string | null): Date | null {
+        if (!dateStr) return null;
+        const [day, month, year] = dateStr.split("/").map(Number);
+        return new Date(year, month - 1, day);
+    }
+
+    return games.filter(game => {
+        const updated = parseDate(game.last_updated);
+        const played = parseDate(game.last_played);
+        return updated !== null && played !== null && updated > played && (game.status === 'Ongoing' || game.status === 'Watchlist');
+    }).sort((a, b) => b.rating - a.rating)
+}
+
 export const categorizeOngoingGamesByRating = (games: Game[]): GameCategory[] => {
     const ongoingGames = games.filter(game => game.status === 'Ongoing');
 

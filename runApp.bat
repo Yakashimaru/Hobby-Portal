@@ -19,3 +19,5 @@ start /min "Backend-Scrapping Logger" cmd /k py -m Backend.apis.log_scrapper
 REM run frontend2
 cd /d "%~dp0Frontend2"
 start /min "Frontend2" cmd /k npm run dev
+
+start http://localhost:5173/vn
