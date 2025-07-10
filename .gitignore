@@ -10,3 +10,4 @@ node_modules
 /Backend/logs/
 /Backend/scrapers/vn_daily_scrap/service/build
 /Backend/scrapers/vn_daily_scrap/service/dist
+/Frontend2/.vite
