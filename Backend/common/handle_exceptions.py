@@ -22,6 +22,12 @@ def json_exception(data):
         "message": "Invalid JSON input: " + data
     }), 400
 
+def invalid_fields_exception(invalid_fields, valid_fields):
+    return jsonify({
+        "error": f"Invalid fields: {invalid_fields}",
+        "valid_fields": valid_fields
+    }), 400
+
 #Simple exception
 def simple_exception(e):
     return jsonify({
