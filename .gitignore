@@ -5,9 +5,9 @@ __pycache__
 Frontend/my-app/public/assets/
 .env*
 node_modules
-/Frontend2/src/assets/
+/Frontend/src/assets/
 /Database/backup
 /Backend/logs/
 /Backend/scrapers/vn_daily_scrap/service/build
 /Backend/scrapers/vn_daily_scrap/service/dist
-/Frontend2/.vite
+/Frontend/.vite
