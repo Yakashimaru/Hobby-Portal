@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState , memo } from 'react';
 import DisplayImage from '../DisplayImage';
 import type { Game } from 'types/game';
 import { Star, Calendar, RefreshCw, Check, Play } from 'lucide-react';
@@ -15,7 +15,7 @@ interface GameCardProps {
     onSilentRefetch?: () => void; // Optional callback for refetching data
 }
 
-const GameCard = ({ game, onGameClick, currentTab, statusColor, onSilentRefetch }: GameCardProps) => {
+const GameCard = memo(({ game, onGameClick, currentTab, statusColor, onSilentRefetch }: GameCardProps) => {
     const [isHovered, setIsHovered] = useState(false);
 
     const imagePath = "../assets/images/visual_novel/";
@@ -121,6 +121,17 @@ const GameCard = ({ game, onGameClick, currentTab, statusColor, onSilentRefetch 
             </div>
         </Card>
     );
-};
+}, (prevProps, nextProps) => {
+  // Custom comparison function - only re-render if these specific props change
+  return (
+    prevProps.game.id === nextProps.game.id &&
+    prevProps.game.status === nextProps.game.status &&
+    prevProps.game.rating === nextProps.game.rating &&
+    prevProps.game.last_updated_ver === nextProps.game.last_updated_ver &&
+    prevProps.game.last_played_ver === nextProps.game.last_played_ver &&
+    prevProps.statusColor === nextProps.statusColor &&
+    prevProps.currentTab === nextProps.currentTab
+  );
+});
 
 export default GameCard;

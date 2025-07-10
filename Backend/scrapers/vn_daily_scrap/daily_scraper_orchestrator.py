@@ -183,7 +183,7 @@ class DailyScraperOrchestrator:
                     })
                     
                     # Log failed scraping
-                    self.log_scraping_result(game, False, 'all_sources', error='Scraping failed')
+                    self.log_scraping_result(game, False, 'None', error='Scraping failed')
                     
                     # Clean summary log
                     self.summary_logger.info(f"{game_name} FAILED scraping")
@@ -259,11 +259,11 @@ class DailyScraperOrchestrator:
         """Smart game selection with GUARANTEED full coverage over time"""
 
         # Debug: Check top games by rating
-        self.logger.info("Top 10 games by rating:")
-        sorted_by_rating = sorted(games, key=lambda g: self.safe_get_rating(g), reverse=True)
-        for i, game in enumerate(sorted_by_rating[:10]):
-            rating = self.safe_get_rating(game)
-            self.logger.info(f"  {i+1}. {game.get('game')} - Rating: {rating}")
+        # self.logger.info("Top 10 games by rating:")
+        # sorted_by_rating = sorted(games, key=lambda g: self.safe_get_rating(g), reverse=True)
+        # for i, game in enumerate(sorted_by_rating[:10]):
+        #     rating = self.safe_get_rating(game)
+        #     self.logger.info(f"  {i+1}. {game.get('game')} - Rating: {rating}")
     
         # Configuration parameters
         EXCLUSION_DAYS = 5
@@ -437,90 +437,6 @@ class DailyScraperOrchestrator:
         
         self.logger.info(f"FINAL SELECTION: {len(selections)} games with guaranteed full coverage")
         return selections
-
-    def get_coverage_stats(self):
-        """Get statistics about scraping coverage - useful for monitoring"""
-        try:
-            all_games = get_database('visualnovel')
-            if isinstance(all_games, dict) and 'error' in all_games:
-                return {'error': 'Database connection failed'}
-            
-            # Filter to scrapeable games only
-            scrapeable_games = self.filter_scrapeable_games(all_games)
-            self.logger.info(f"Top 10 scrapeable games by rating:")
-            sorted_by_rating = sorted(scrapeable_games, key=lambda g: self.safe_get_rating(g), reverse=True)
-            for i, game in enumerate(sorted_by_rating[:10]):
-                rating = self.safe_get_rating(game)
-                self.logger.info(f"  {i+1}. {game.get('game', 'No Name')} - Rating: {rating} (raw: {game.get('rating')})")
-            scraping_history = self.get_scraping_history()
-            
-            today = datetime.now().date()
-            
-            stats = {
-                'total_scrapeable': len(scrapeable_games),
-                'never_scraped': 0,
-                'scraped_last_7_days': 0,
-                'scraped_last_15_days': 0,
-                'scraped_over_30_days_ago': 0,
-                'coverage_percentage': 0
-            }
-            
-            for game in scrapeable_games:
-                game_id = game.get('id')
-                if game_id in scraping_history:
-                    days_ago = (today - scraping_history[game_id]).days
-                    if days_ago <= 7:
-                        stats['scraped_last_7_days'] += 1
-                    elif days_ago <= 15:
-                        stats['scraped_last_15_days'] += 1
-                    elif days_ago >= 30:
-                        stats['scraped_over_30_days_ago'] += 1
-                else:
-                    stats['never_scraped'] += 1
-            
-            # Calculate coverage percentage
-            scraped_count = stats['total_scrapeable'] - stats['never_scraped']
-            if stats['total_scrapeable'] > 0:
-                stats['coverage_percentage'] = (scraped_count / stats['total_scrapeable']) * 100
-            
-            return stats
-            
-        except Exception as e:
-            return {'error': str(e)}
-    
-    def get_recently_scraped_game_ids(self, exclusion_date):
-        """Get IDs of games scraped recently using SQLite state database"""
-        try:
-            state_db_path = get_database_path('daily_scraper_state.db')
-            
-            if not state_db_path.exists():
-                self.logger.info("No state database found - treating all games as available")
-                return set()
-            
-            import sqlite3
-            with sqlite3.connect(state_db_path) as conn:
-                # Check if the table exists first
-                cursor = conn.execute("""
-                    SELECT name FROM sqlite_master 
-                    WHERE type='table' AND name='game_scrape_log'
-                """)
-                
-                if not cursor.fetchone():
-                    self.logger.info("No scrape log table found - treating all games as available")
-                    return set()
-                
-                # Get recently scraped game IDs
-                cursor = conn.execute("""
-                    SELECT DISTINCT game_id 
-                    FROM game_scrape_log 
-                    WHERE scrape_date > ? AND success = 1
-                """, (exclusion_date,))
-                
-                return {row[0] for row in cursor.fetchall() if row[0]}
-                
-        except Exception as e:
-            self.logger.warning(f"Error checking recently scraped games: {e}")
-            return set()
         
     def get_scraping_history(self):
         """Get scraping history for all games - returns dict of {game_id: last_scraped_date}"""
@@ -544,10 +460,8 @@ class DailyScraperOrchestrator:
                 
                 # Get the most recent successful scrape date for each game
                 cursor = conn.execute("""
-                    SELECT game_id, MAX(scrape_date) as last_scraped
+                    SELECT game_id, scrape_date as last_scraped
                     FROM game_scrape_log 
-                    WHERE success = 1
-                    GROUP BY game_id
                 """)
                 
                 history = {}
@@ -748,25 +662,21 @@ class DailyScraperOrchestrator:
                         game_name TEXT,
                         scrape_date DATE,
                         success BOOLEAN,
-                        source_used TEXT,
-                        error_message TEXT,
-                        last_updated_found TEXT
+                        source_used TEXT
                     )
                 ''')
                 
-                # Insert the log entry
+                # Insert the entry
                 conn.execute('''
-                    INSERT INTO game_scrape_log 
-                    (game_id, game_name, scrape_date, success, source_used, error_message, last_updated_found)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    INSERT OR REPLACE INTO game_scrape_log 
+                    (game_id, game_name, scrape_date, success, source_used)
+                    VALUES (?, ?, ?, ?, ?)
                 ''', (
                     game.get('id'),
                     game.get('game'),
                     today,
                     success,
                     source,
-                    error,
-                    scraped_data.get('last_updated') if scraped_data else None
                 ))
                 
         except Exception as e:

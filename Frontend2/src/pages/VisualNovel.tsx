@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import { Play, ChevronDown, ChevronUp, Check, RefreshCw, 
-    Gamepad2, Archive, X, Eye
+    Gamepad2, Archive, X, Eye, Zap
 } from 'lucide-react';
 
 ////////// Types //////////
@@ -19,6 +19,7 @@ import {
     getDroppedGames, 
     getOngoingGames, 
     getWatchlistGames,
+    getNewGames,
     getArchiveGames,
     categorizeOngoingGamesByRating 
 } from '../utils/gameFilters';
@@ -38,7 +39,7 @@ import UpdatesSection from '../components/UpdateSection';
 
 // Types for better type safety
 type ArchiveFilter = 'all' | 'completed' | 'dropped';
-type ActiveFilter = 'all' | 'ongoing' | 'watchlist';
+type ActiveFilter = 'all' | 'ongoing' | 'watchlist' | 'new';
 type CurrentTab = 'active' | 'archive';
 type CardsPerRow = 3 | 4 | 5 | 6;
 type CollapsedSections = Record<string, boolean>;
@@ -75,35 +76,17 @@ const VisualNovel = () => {
         silentRefetch(); 
     }, [silentRefetch]);
 
-    // Memoized computed values for better performance
-    const computedData = useMemo(() => {
-        if (!games.length) {
-            return {
-                activeGames: [],
-                ongoingGames: [],
-                watchlistGames: [],
-                completedGames: [],
-                droppedGames: [],
-                categorizedOngoing: []
-            };
-        }
 
-        const activeGames = getActiveGames(games);
-        const ongoingGames = getOngoingGames(games);
-        const watchlistGames = getWatchlistGames(games);
-        const completedGames = getCompletedGames(games);
-        const droppedGames = getDroppedGames(games);
-        const categorizedOngoing = categorizeOngoingGamesByRating(games);
+    // Separate memoization for each filter
+    const activeGames = useMemo(() => games.length ? getActiveGames(games) : [], [games]);
+    const ongoingGames = useMemo(() => games.length ? getOngoingGames(games) : [], [games]);
+    const watchlistGames = useMemo(() => games.length ? getWatchlistGames(games) : [], [games]);
+    const completedGames = useMemo(() => games.length ? getCompletedGames(games) : [], [games]);
+    const droppedGames = useMemo(() => games.length ? getDroppedGames(games) : [], [games]);
+    const newGames = useMemo(() => games.length ? getNewGames(games) : [], [games]);
+    const categorizedOngoing = useMemo(() => games.length ? categorizeOngoingGamesByRating(games) : [], [games]);
 
-        return {
-            activeGames,
-            ongoingGames,
-            watchlistGames,
-            completedGames,
-            droppedGames,
-            categorizedOngoing
-        };
-    }, [games]);
+    // Memoize the active content based on current filter
 
     const archiveGames = useMemo(() => 
         getArchiveGames(games, archiveFilter), 
@@ -191,8 +174,6 @@ const VisualNovel = () => {
         }
     };
 
-    const { activeGames, ongoingGames, watchlistGames, completedGames, droppedGames, categorizedOngoing } = computedData;
-
     return (
         <>
             <div className={`min-h-screen bg-gray-50 p-6 transition-all duration-300 ${
@@ -248,6 +229,7 @@ const VisualNovel = () => {
                                 onFilterChange={setActiveFilter}
                                 ongoingCount={ongoingGames.length}
                                 watchlistCount={watchlistGames.length}
+                                newCount={newGames.length}
                                 onUpdateAll={handleUpdateAll}  // Just pass the function reference
                                 isUpdating={isUpdating}
                                 updateProgress={updateProgress ? {
@@ -260,14 +242,13 @@ const VisualNovel = () => {
 
                             {/* Active Content */}
                             <div className="space-y-8">
-                                {/* Show based on filter */}
                                 {activeFilter === 'all' && (
                                     <>
-                                        {/* Rating-based categories for Ongoing games */}
                                         {categorizedOngoing.map((category) => {
                                             const isCollapsed = collapsedSections[category.key];
                                             return (
                                                 <div key={category.key} className={`border-2 rounded-lg p-6 ${getRatingRangeColor(category.key)}`}>
+                                                    {/* Keep all your existing category content exactly the same */}
                                                     <div 
                                                         className="flex items-center justify-between mb-6 cursor-pointer"
                                                         onClick={() => toggleSection(category.key)}
@@ -316,7 +297,6 @@ const VisualNovel = () => {
                                             );
                                         })}
 
-                                        {/* Watchlist section at the bottom */}
                                         {watchlistGames.length > 0 && (
                                             <div className="border-2 rounded-lg p-6 border-yellow-400 bg-yellow-50">
                                                 <div 
@@ -328,7 +308,7 @@ const VisualNovel = () => {
                                                             <Eye className="w-6 h-6 mr-2 text-yellow-600" />
                                                             Watchlist
                                                             <span className="ml-2 bg-white bg-opacity-70 text-gray-700 px-2 py-1 rounded-full text-sm font-medium">
-                                                                {watchlistGames.length} games
+                                                                {watchlistGames.length} games 
                                                             </span>
                                                         </h2>
                                                     </div>
@@ -365,8 +345,7 @@ const VisualNovel = () => {
                                     </>
                                 )}
 
-                                {/* Filtered views for ongoing only */}
-                                {activeFilter === 'ongoing' && categorizedOngoing.length > 0 && (
+                                {activeFilter === 'ongoing' && (
                                     <>
                                         {categorizedOngoing.map((category) => {
                                             const isCollapsed = collapsedSections[category.key];
@@ -412,44 +391,59 @@ const VisualNovel = () => {
                                                 </div>
                                             );
                                         })}
+                                        {categorizedOngoing.length === 0 && (
+                                            <div className="text-center py-12">
+                                                <Play className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                                                <p className="text-gray-500 text-lg">No ongoing games found.</p>
+                                            </div>
+                                        )}
                                     </>
                                 )}
 
-                                {/* Watchlist only view */}
-                                {activeFilter === 'watchlist' && watchlistGames.length > 0 && (
-                                    <div className={`grid ${gridCols[cardsPerRow]} gap-6`}>
-                                        {watchlistGames.map(game => (
-                                            <GameCard 
-                                                key={game.id} 
-                                                game={game}
-                                                statusColor={getStatusColor(game.status)}
-                                                onGameClick={handleGameClick}
-                                                currentTab={currentTab}
-                                            />
-                                        ))}
-                                    </div>
+                                {activeFilter === 'watchlist' && (
+                                    <>
+                                        {watchlistGames.length > 0 ? (
+                                            <div className={`grid ${gridCols[cardsPerRow]} gap-6`}>
+                                                {watchlistGames.map(game => (
+                                                    <GameCard 
+                                                        key={game.id} 
+                                                        game={game}
+                                                        statusColor={getStatusColor(game.status)}
+                                                        onGameClick={handleGameClick}
+                                                        currentTab={currentTab}
+                                                    />
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="text-center py-12">
+                                                <Eye className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                                                <p className="text-gray-500 text-lg">No watchlist games found.</p>
+                                            </div>
+                                        )}
+                                    </>
                                 )}
 
-                                {/* Empty states */}
-                                {activeFilter === 'ongoing' && categorizedOngoing.length === 0 && (
-                                    <div className="text-center py-12">
-                                        <Play className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-                                        <p className="text-gray-500 text-lg">No ongoing games found.</p>
-                                    </div>
-                                )}
-
-                                {activeFilter === 'watchlist' && watchlistGames.length === 0 && (
-                                    <div className="text-center py-12">
-                                        <Eye className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-                                        <p className="text-gray-500 text-lg">No watchlist games found.</p>
-                                    </div>
-                                )}
-
-                                {activeFilter === 'all' && categorizedOngoing.length === 0 && watchlistGames.length === 0 && (
-                                    <div className="text-center py-12">
-                                        <Gamepad2 className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-                                        <p className="text-gray-500 text-lg">No active games found.</p>
-                                    </div>
+                                {activeFilter === 'new' && (
+                                    <>
+                                        {newGames.length > 0 ? (
+                                            <div className={`grid ${gridCols[cardsPerRow]} gap-6`}>
+                                                {newGames.map(game => (
+                                                    <GameCard 
+                                                        key={game.id} 
+                                                        game={game}
+                                                        statusColor={getStatusColor(game.status)}
+                                                        onGameClick={handleGameClick}
+                                                        currentTab={currentTab}
+                                                    />
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="text-center py-12">
+                                                <Zap className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                                                <p className="text-gray-500 text-lg">No updated games found.</p>
+                                            </div>
+                                        )}
+                                    </>
                                 )}
                             </div>
                         </div>
