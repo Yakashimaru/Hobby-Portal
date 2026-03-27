@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Play, ChevronDown, ChevronUp, Check, RefreshCw, 
     Gamepad2, Archive, X, Eye, Zap
 } from 'lucide-react';
@@ -63,6 +63,14 @@ const VisualNovel = () => {
     // Update and dropdown features
     const [isUpdating, setIsUpdating] = useState(false);
     const [updateProgress, setUpdateProgress] = useState<UpdateAllProgress | null>(null);
+
+    // Sync selectedGame when games array updates after refetch
+    useEffect(() => {
+        if (selectedGame) {
+            const updated = games.find(g => g.id === selectedGame.id);
+            if (updated) setSelectedGame(updated);
+        }
+    }, [games]);
 
     // Pass a function to open gallery from sidebar
     const handleOpenGallery = (game: Game, index: number) => {
@@ -324,12 +332,13 @@ const VisualNovel = () => {
                                                 {!collapsedSections.watchlist && (
                                                     <div className={`grid ${gridCols[cardsPerRow]} gap-6`}>
                                                         {watchlistGames.map(game => (
-                                                            <GameCard 
-                                                                key={game.id} 
+                                                            <GameCard
+                                                                key={game.id}
                                                                 game={game}
                                                                 statusColor={getStatusColor(game.status)}
                                                                 onGameClick={handleGameClick}
                                                                 currentTab={currentTab}
+                                                                onSilentRefetch={silentRefetch}
                                                             />
                                                         ))}
                                                     </div>
@@ -378,12 +387,13 @@ const VisualNovel = () => {
                                                     {!isCollapsed && (
                                                         <div className={`grid ${gridCols[cardsPerRow]} gap-6`}>
                                                             {category.games.map(game => (
-                                                                <GameCard 
-                                                                    key={game.id} 
+                                                                <GameCard
+                                                                    key={game.id}
                                                                     game={game}
                                                                     statusColor={getStatusColor(game.status)}
                                                                     onGameClick={handleGameClick}
                                                                     currentTab={currentTab}
+                                                                    onSilentRefetch={silentRefetch}
                                                                 />
                                                             ))}
                                                         </div>
@@ -405,12 +415,13 @@ const VisualNovel = () => {
                                         {watchlistGames.length > 0 ? (
                                             <div className={`grid ${gridCols[cardsPerRow]} gap-6`}>
                                                 {watchlistGames.map(game => (
-                                                    <GameCard 
-                                                        key={game.id} 
+                                                    <GameCard
+                                                        key={game.id}
                                                         game={game}
                                                         statusColor={getStatusColor(game.status)}
                                                         onGameClick={handleGameClick}
                                                         currentTab={currentTab}
+                                                        onSilentRefetch={silentRefetch}
                                                     />
                                                 ))}
                                             </div>
@@ -428,12 +439,13 @@ const VisualNovel = () => {
                                         {newGames.length > 0 ? (
                                             <div className={`grid ${gridCols[cardsPerRow]} gap-6`}>
                                                 {newGames.map(game => (
-                                                    <GameCard 
-                                                        key={game.id} 
+                                                    <GameCard
+                                                        key={game.id}
                                                         game={game}
                                                         statusColor={getStatusColor(game.status)}
                                                         onGameClick={handleGameClick}
                                                         currentTab={currentTab}
+                                                        onSilentRefetch={silentRefetch}
                                                     />
                                                 ))}
                                             </div>
@@ -501,12 +513,13 @@ const VisualNovel = () => {
                                             </h3>
                                             <div className={`grid ${gridCols[cardsPerRow]} gap-6`}>
                                                 {completedGames.map(game => (
-                                                    <GameCard 
-                                                        key={game.id} 
+                                                    <GameCard
+                                                        key={game.id}
                                                         game={game}
                                                         statusColor={getStatusColor(game.status)}
                                                         onGameClick={handleGameClick}
                                                         currentTab={currentTab}
+                                                        onSilentRefetch={silentRefetch}
                                                     />
                                                 ))}
                                             </div>
@@ -522,12 +535,13 @@ const VisualNovel = () => {
                                             </h3>
                                             <div className={`grid ${gridCols[cardsPerRow]} gap-6`}>
                                                 {droppedGames.map(game => (
-                                                    <GameCard 
-                                                        key={game.id} 
+                                                    <GameCard
+                                                        key={game.id}
                                                         game={game}
                                                         statusColor={getStatusColor(game.status)}
                                                         onGameClick={handleGameClick}
                                                         currentTab={currentTab}
+                                                        onSilentRefetch={silentRefetch}
                                                     />
                                                 ))}
                                             </div>
@@ -540,12 +554,13 @@ const VisualNovel = () => {
                             {archiveFilter !== 'all' && (
                                 <div className={`grid ${gridCols[cardsPerRow]} gap-6`}>
                                     {archiveGames.map(game => (
-                                        <GameCard 
-                                            key={game.id} 
+                                        <GameCard
+                                            key={game.id}
                                             game={game}
                                             statusColor={getStatusColor(game.status)}
                                             onGameClick={handleGameClick}
                                             currentTab={currentTab}
+                                            onSilentRefetch={silentRefetch}
                                         />
                                     ))}
                                 </div>
