@@ -15,27 +15,15 @@ const UpdatesSection: React.FC<UpdatesSectionProps> = ({ gamesWithUpdates, onGam
 
     // Sort games by weighted score (days since update × rating modifier)
     const getSortedGamesByPriority = (games: Game[]) => {
-        const today = new Date();
-        
-        return games
-            .map(game => {
-                // Parse last_updated date (DD/MM/YYYY format)
-                const parseDate = (dateStr?: string) => {
-                    if (!dateStr) return new Date();
-                    const [day, month, year] = dateStr.split('/');
-                    return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-                };
-                
-                const lastUpdated = parseDate(game.last_updated);
-                const daysSinceUpdate = Math.floor((today.getTime() - lastUpdated.getTime()) / (1000 * 60 * 60 * 24));
-                
-                // Weight by rating (higher rating = higher priority)
-                const ratingMultiplier = (game.rating || 5) / 10;
-                const score = daysSinceUpdate * ratingMultiplier;
-                
-                return { ...game, score, daysSinceUpdate };
-            })
-            .sort((a, b) => b.score - a.score); // Higher score = higher priority
+        const parseDate = (dateStr?: string) => {
+            if (!dateStr) return new Date(0);
+            const [day, month, year] = dateStr.split('/');
+            return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        };
+
+        return [...games].sort((a, b) =>
+            parseDate(b.last_updated).getTime() - parseDate(a.last_updated).getTime()
+        );
     };
 
     // Calculate max visible games based on available space

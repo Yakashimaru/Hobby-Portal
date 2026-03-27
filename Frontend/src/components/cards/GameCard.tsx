@@ -17,6 +17,7 @@ interface GameCardProps {
 
 const GameCard = memo(({ game, onGameClick, currentTab, statusColor, onSilentRefetch }: GameCardProps) => {
     const [isHovered, setIsHovered] = useState(false);
+    const [isUpdating, setIsUpdating] = useState(false);
 
     const imagePath = "visual_novel/";
     const formattedGameName = formatUnderscoreName(removeSpecialCharacters(game.game));
@@ -76,23 +77,23 @@ const GameCard = memo(({ game, onGameClick, currentTab, statusColor, onSilentRef
                         >
                             <Check className="w-4 h-4" />
                         </button>
-                        <button 
+                        <button
                             className="bg-green-500 hover:bg-green-600 text-white w-8 h-8 rounded-full shadow-lg transition-all duration-200 flex items-center justify-center"
                             onClick={async (e) => {
                                 e.stopPropagation();
+                                setIsUpdating(true);
                                 try{
-                                    console.log('Updating game:', game.game);
                                     await gameService.updateSingleGame(game);
                                     onSilentRefetch?.();
-                                    console.log('Game updated successfully');
                                 } catch (error){
                                     console.log('Failed to update game:', error);
+                                } finally {
+                                    setIsUpdating(false);
                                 }
-                                
                             }}
                             title="Check for Updates"
                         >
-                            <RefreshCw className="w-4 h-4" />
+                            <RefreshCw className={`w-4 h-4 ${isUpdating ? 'animate-spin' : ''}`} />
                         </button>
                     </div>
                 )}
