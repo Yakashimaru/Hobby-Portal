@@ -172,7 +172,7 @@ const UpdatesSection: React.FC<UpdatesSectionProps> = ({ gamesWithUpdates, onGam
                                             <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 shadow-sm">
                                                 <DisplayImage
                                                     imageTitle={getImageTitle(game)}
-                                                    path="../assets/images/visual_novel/"
+                                                    path="visual_novel/"
                                                     className="w-full h-full object-cover"
                                                     alt={game.game}
                                                     fallbackText={game.game.substring(0, 1)}
@@ -203,7 +203,7 @@ const UpdatesSection: React.FC<UpdatesSectionProps> = ({ gamesWithUpdates, onGam
                                             <div className="w-14 h-14 rounded-full overflow-hidden shadow-lg group-hover:scale-110 transition-transform border-2 border-white">
                                                 <DisplayImage
                                                     imageTitle={getImageTitle(game)}
-                                                    path="../assets/images/visual_novel/"
+                                                    path="visual_novel/"
                                                     className="w-full h-full object-cover"
                                                     alt={game.game}
                                                     fallbackText={game.game.substring(0, 2)}

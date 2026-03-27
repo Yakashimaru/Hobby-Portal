@@ -39,7 +39,7 @@ const GameDetailsSidebar: React.FC<GameDetailsSidebarProps> = ({
     const currentGame = isEditing && editData ? editData : game;
     const favorites = [currentGame.fav_1, currentGame.fav_2, currentGame.fav_3].filter(Boolean);
 
-    const imagePath = "../assets/images/visual_novel/";
+    const imagePath = "visual_novel/";
 
     const handleFavoriteClick = (index: number) => {
         onOpenGallery(game, index);
