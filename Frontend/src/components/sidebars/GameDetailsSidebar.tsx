@@ -100,8 +100,6 @@ const GameDetailsSidebar: React.FC<GameDetailsSidebarProps> = ({
                 onSilentRefetch();
             }
 
-            Object.assign(game, editData);
-            
             setIsEditing(false);
             setEditData(null);
         } catch (error) {

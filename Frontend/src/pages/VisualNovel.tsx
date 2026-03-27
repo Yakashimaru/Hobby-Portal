@@ -161,10 +161,10 @@ const VisualNovel = () => {
 
             await updateService.updateAllGames(gamesToUpdate, (progress) => {
                 setUpdateProgress(progress);
-                silentRefetch(); // Refresh UI after each game
             });
-            
+
             console.log('Update all completed successfully');
+            silentRefetch(); // Refresh UI once after all games are updated
             
         } catch (error: any) {  // Fix the 'unknown' error type
             console.error('Update all failed:', error.message || error);
