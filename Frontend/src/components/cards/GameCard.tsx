@@ -18,7 +18,7 @@ interface GameCardProps {
 const GameCard = memo(({ game, onGameClick, currentTab, statusColor, onSilentRefetch }: GameCardProps) => {
     const [isHovered, setIsHovered] = useState(false);
 
-    const imagePath = "../assets/images/visual_novel/";
+    const imagePath = "visual_novel/";
     const formattedGameName = formatUnderscoreName(removeSpecialCharacters(game.game));
     
     const handleCardClick = (e: React.MouseEvent) => {

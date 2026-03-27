@@ -9,8 +9,9 @@ interface DisplayImageProps {
 }
 
 const DisplayImage = ({ imageTitle, path, className, alt, fallbackText = "No Image" }: DisplayImageProps) => {
-        const jpgSrc = new URL(`${path + imageTitle}.jpg`, import.meta.url).href;
-        const pngSrc = new URL(`${path + imageTitle}.png`, import.meta.url).href;
+        const baseUrl = import.meta.env.VITE_R2_IMAGE_URL;
+        const jpgSrc = `${baseUrl}/${path}${imageTitle}.jpg`;
+        const pngSrc = `${baseUrl}/${path}${imageTitle}.png`;
 
         const [currentSrc, setCurrentSrc] = useState(jpgSrc);
         const [hasError, setHasError] = useState(false);
