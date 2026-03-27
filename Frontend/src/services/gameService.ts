@@ -84,14 +84,14 @@ export const updateService = {
 
         const allScrapingMethods = [
             {
-                name: 'Primary',
-                url: this.generateUrl(removeSpecialCharacters(game.game)),
-                condition: true
-            },
-            {
                 name: 'Src_f',
                 url: this.generateUrlF(game.src_f),
                 condition: isValidUrl(game.src_f)
+            },
+            {
+                name: 'Primary',
+                url: this.generateUrl(removeSpecialCharacters(game.game)),
+                condition: true
             }
             // Add more if needed... {}
         ];

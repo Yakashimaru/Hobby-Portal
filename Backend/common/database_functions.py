@@ -2,12 +2,12 @@
 
 from flask import Flask, request, jsonify
 
-try: 
-    from .database_connection import connect_to_database
+try:
+    from .database_connection import connect_to_database, release_connection
     from ..common.handle_exceptions import internal_error_exception
     from ..common.data_functions import convert_keys_values_to_string
 except:
-    from database_connection import connect_to_database
+    from database_connection import connect_to_database, release_connection
     from common.handle_exceptions import internal_error_exception
     from common.data_functions import convert_keys_values_to_string
 
@@ -17,12 +17,12 @@ def dict_result(columns, rows):
 
 ##### GET function #####
 def get_database(table_name, columns_order = None, sort_by_clause = None):
+    conn = connect_to_database()
     try:
-        conn = connect_to_database()
         cur = conn.cursor()
 
         columns_order = columns_order.strip() if columns_order else "*"
-        
+
         sql_query = f"SELECT {columns_order} FROM {table_name} {sort_by_clause}"
         cur.execute(sql_query)
 
@@ -32,20 +32,21 @@ def get_database(table_name, columns_order = None, sort_by_clause = None):
 
         conn.commit()
         cur.close()
-        conn.close()
 
         return dict_result(columns, rows)
 
     except Exception as e:
         return internal_error_exception(e)
+    finally:
+        release_connection(conn)
 
 
 ##### GET function with INNER JOIN #####
 def get_database_inner_join(table_name1, table_name2, join_clause ,order = "*", sort_by_clause = ""):
+    conn = connect_to_database()
     try:
-        conn = connect_to_database()
         cur = conn.cursor()
-        
+
         sql_query = f"SELECT {order} FROM {table_name1} INNER JOIN {table_name2} ON {join_clause} {sort_by_clause}"
         cur.execute(sql_query)
 
@@ -55,20 +56,19 @@ def get_database_inner_join(table_name1, table_name2, join_clause ,order = "*", 
 
         conn.commit()
         cur.close()
-        conn.close()
 
         return dict_result(columns, rows)
 
     except Exception as e:
         return internal_error_exception(e)
-    
+    finally:
+        release_connection(conn)
+
 ##### POST function #####
 def post_database(table_name, data):
+    conn = connect_to_database()
     try:
-        conn = connect_to_database()
         cur = conn.cursor()
-
-        #column_names, column_values = get_keys_and_values(data)
 
         column_names, column_values = convert_keys_values_to_string(data.keys(), data.values())
 
@@ -88,7 +88,6 @@ def post_database(table_name, data):
 
         conn.commit()
         cur.close()
-        conn.close()
 
         return jsonify({
             "code": 200,
@@ -97,13 +96,15 @@ def post_database(table_name, data):
 
     except Exception as e:
         return internal_error_exception(e)
+    finally:
+        release_connection(conn)
 
 ##### PUT function #####
 def put_database(table_name, data, condition_column):
+    conn = connect_to_database()
     try:
-        conn = connect_to_database()
         cur = conn.cursor()
-        
+
         # Build the SET part of the query dynamically
         set_clause = ', '.join([f"{key} = %s" for key in data.keys() if key != condition_column])
         condition_value = data[condition_column]
@@ -111,26 +112,27 @@ def put_database(table_name, data, condition_column):
 
         # Create the SQL query
         sql_query = f"UPDATE {table_name} SET {set_clause} WHERE {condition_column} = %s"
-        
+
         # Execute the SQL query
         cur.execute(sql_query, (*data.values(), condition_value))
 
         conn.commit()
         cur.close()
-        conn.close()
 
         return jsonify({
             "code": 201,
             "message": "Data updated successfully"
         }), 201
-    
+
     except Exception as e:
         return internal_error_exception(e)
+    finally:
+        release_connection(conn)
 
 ##### DELETE function #####
 def delete_database(table_name, data):
+    conn = connect_to_database()
     try:
-        conn = connect_to_database()
         cur = conn.cursor()
 
         # Build the WHERE clause dynamically
@@ -148,7 +150,7 @@ def delete_database(table_name, data):
         cur.execute(select_query, where_values)
         deleted_data = cur.fetchone()
 
-         # Execute the delete query
+        # Execute the delete query
         sql_query = f"DELETE FROM {table_name} WHERE {where_clause}"
         cur.execute(sql_query, where_values)
 
@@ -157,7 +159,6 @@ def delete_database(table_name, data):
 
         conn.commit()
         cur.close()
-        conn.close()
 
         # Determine message based on results
         if rows_affected == 0:
@@ -165,13 +166,14 @@ def delete_database(table_name, data):
         else:
             message = f"Successfully deleted {rows_affected} record(s)"
 
-        
         return jsonify({
             "code": 200,
             "message": message,
             "deleted_data": deleted_data,
             "rows_affected": rows_affected
         }), 200
-    
+
     except Exception as e:
         return internal_error_exception(e)
+    finally:
+        release_connection(conn)
