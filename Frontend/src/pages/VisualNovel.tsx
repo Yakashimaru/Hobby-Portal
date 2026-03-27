@@ -582,7 +582,7 @@ const VisualNovel = () => {
                     favorites={[galleryGame.fav_1, galleryGame.fav_2, galleryGame.fav_3].filter((fav): fav is string => Boolean(fav))}
                     currentIndex={galleryIndex}
                     onIndexChange={setGalleryIndex}
-                    imagePath="../assets/images/visual_novel/"
+                    imagePath="visual_novel/"
                     gameTitle={galleryGame.game}
                     formattedGameName={formatUnderscoreName(removeSpecialCharacters(galleryGame.game))}
                 />
