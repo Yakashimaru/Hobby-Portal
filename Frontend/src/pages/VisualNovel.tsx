@@ -48,7 +48,7 @@ const VisualNovel = () => {
     const [archiveFilter, setArchiveFilter] = useState<ArchiveFilter>('all');
     const [activeFilter, setActiveFilter] = useState<ActiveFilter>('all');
     const [collapsedSections, setCollapsedSections] = useState<CollapsedSections>({}); 
-    const [cardsPerRow, setCardsPerRow] = useState<CardsPerRow>(6);
+    const [cardsPerRow] = useState<CardsPerRow>(6);
     const [currentTab, setCurrentTab] = useState<CurrentTab>('active');
     const [selectedGame, setSelectedGame] = useState<Game | null>(null);
 
@@ -80,8 +80,8 @@ const VisualNovel = () => {
     };
 
     // Refetch data when a game is added
-    const handleGameAdded = useCallback((newGame: Game) => {
-        silentRefetch(); 
+    const handleGameAdded = useCallback(() => {
+        silentRefetch();
     }, [silentRefetch]);
 
 
@@ -289,7 +289,6 @@ const VisualNovel = () => {
                                                                     game={game}
                                                                     statusColor={getStatusColor(game.status)}
                                                                     onGameClick={handleGameClick}
-                                                                    currentTab={currentTab}
                                                                     onSilentRefetch={silentRefetch}
                                                                 />
                                                             ))}
@@ -337,7 +336,6 @@ const VisualNovel = () => {
                                                                 game={game}
                                                                 statusColor={getStatusColor(game.status)}
                                                                 onGameClick={handleGameClick}
-                                                                currentTab={currentTab}
                                                                 onSilentRefetch={silentRefetch}
                                                             />
                                                         ))}
@@ -392,7 +390,6 @@ const VisualNovel = () => {
                                                                     game={game}
                                                                     statusColor={getStatusColor(game.status)}
                                                                     onGameClick={handleGameClick}
-                                                                    currentTab={currentTab}
                                                                     onSilentRefetch={silentRefetch}
                                                                 />
                                                             ))}
@@ -420,7 +417,6 @@ const VisualNovel = () => {
                                                         game={game}
                                                         statusColor={getStatusColor(game.status)}
                                                         onGameClick={handleGameClick}
-                                                        currentTab={currentTab}
                                                         onSilentRefetch={silentRefetch}
                                                     />
                                                 ))}
@@ -444,7 +440,6 @@ const VisualNovel = () => {
                                                         game={game}
                                                         statusColor={getStatusColor(game.status)}
                                                         onGameClick={handleGameClick}
-                                                        currentTab={currentTab}
                                                         onSilentRefetch={silentRefetch}
                                                     />
                                                 ))}
@@ -518,7 +513,6 @@ const VisualNovel = () => {
                                                         game={game}
                                                         statusColor={getStatusColor(game.status)}
                                                         onGameClick={handleGameClick}
-                                                        currentTab={currentTab}
                                                         onSilentRefetch={silentRefetch}
                                                     />
                                                 ))}
@@ -540,7 +534,6 @@ const VisualNovel = () => {
                                                         game={game}
                                                         statusColor={getStatusColor(game.status)}
                                                         onGameClick={handleGameClick}
-                                                        currentTab={currentTab}
                                                         onSilentRefetch={silentRefetch}
                                                     />
                                                 ))}
@@ -559,7 +552,6 @@ const VisualNovel = () => {
                                             game={game}
                                             statusColor={getStatusColor(game.status)}
                                             onGameClick={handleGameClick}
-                                            currentTab={currentTab}
                                             onSilentRefetch={silentRefetch}
                                         />
                                     ))}

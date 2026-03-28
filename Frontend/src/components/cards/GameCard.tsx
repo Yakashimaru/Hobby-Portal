@@ -10,12 +10,11 @@ import { gameService } from '../../services/gameService';
 interface GameCardProps {
     game: Game;
     onGameClick: (game: Game) => void;
-    currentTab: string;
     statusColor: string;
-    onSilentRefetch?: () => void; // Optional callback for refetching data
+    onSilentRefetch?: () => void;
 }
 
-const GameCard = memo(({ game, onGameClick, currentTab, statusColor, onSilentRefetch }: GameCardProps) => {
+const GameCard = memo(({ game, onGameClick, statusColor, onSilentRefetch }: GameCardProps) => {
     const [isHovered, setIsHovered] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
 
@@ -130,8 +129,7 @@ const GameCard = memo(({ game, onGameClick, currentTab, statusColor, onSilentRef
     prevProps.game.rating === nextProps.game.rating &&
     prevProps.game.last_updated_ver === nextProps.game.last_updated_ver &&
     prevProps.game.last_played_ver === nextProps.game.last_played_ver &&
-    prevProps.statusColor === nextProps.statusColor &&
-    prevProps.currentTab === nextProps.currentTab
+    prevProps.statusColor === nextProps.statusColor
   );
 });
 
