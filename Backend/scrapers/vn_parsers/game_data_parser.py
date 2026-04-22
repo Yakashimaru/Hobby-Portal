@@ -137,13 +137,25 @@ class GameDataParser:
                 # Remove any remaining HTML entities
                 game_title = game_title.replace('&#039;', "'")
         
+        # Extract banner image — first bbImage in first post.
+        # Live HTML (non-JS) serves thumb URLs in src with no data-src;
+        # full-res is obtained by stripping /thumb/ from the path.
+        banner_url = None
+        if first_post:
+            banner_img = first_post.find('img', class_='bbImage')
+            if banner_img:
+                url = banner_img.get('data-src') or banner_img.get('src')
+                if url:
+                    banner_url = url.replace('/thumb/', '/')
+
         return {
             "last_updated": last_updated,
             "game": game_title,
             "version": version,
             "developer": developer,
             "year": year,
-            "src_f":src_f
+            "src_f": src_f,
+            "banner_url": banner_url
         }
     
     @staticmethod
