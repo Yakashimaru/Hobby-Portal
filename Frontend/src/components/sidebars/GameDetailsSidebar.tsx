@@ -181,7 +181,20 @@ const GameDetailsSidebar: React.FC<GameDetailsSidebarProps> = ({
         <Sidebar 
             isVisible={isVisible}
             onClose={onClose}
-            title={<span>{currentGame.game}</span>}
+            title={
+                <div className="flex items-center justify-between w-full">
+                    <span>{currentGame.game}</span>
+                    {!isEditing && (
+                        <button
+                            onClick={handleEdit}
+                            className="ml-2 p-1 text-white bg-black/30 hover:bg-black/50 rounded-full transition-colors"
+                            title="Edit Game"
+                        >
+                            <Edit3 size={16} />
+                        </button>
+                    )}
+                </div>
+            }
             subtitle={currentGame.developer}
             year={currentGame.year}
             rating={currentGame.rating}
@@ -192,7 +205,7 @@ const GameDetailsSidebar: React.FC<GameDetailsSidebarProps> = ({
 
             {/* Edit Controls */}
             {isEditing && editData && (
-                <div className="p-4 border-b bg-gray-50 space-y-3">
+                <div className="px-2 py-4 border-b bg-gray-50 space-y-3">
                     <div>
                         <label className="block text-xs text-gray-600 mb-1">Title</label>
                         <input
@@ -271,17 +284,7 @@ const GameDetailsSidebar: React.FC<GameDetailsSidebarProps> = ({
                 </div>
             )}
 
-            <div className="p-4 space-y-2">
-                {/* Edit / Replace banner controls */}
-                {!isEditing && (
-                    <button
-                        onClick={handleEdit}
-                        className="flex items-center text-xs text-gray-400 hover:text-gray-600 mb-1"
-                    >
-                        <Edit3 className="w-3 h-3 mr-1" />
-                        Edit details
-                    </button>
-                )}
+            <div className="px-2 py-4 space-y-2">
                 {/* Replace banner — edit mode only */}
                 {isEditing && (!isReplacingBanner ? (
                     <button
@@ -319,9 +322,9 @@ const GameDetailsSidebar: React.FC<GameDetailsSidebarProps> = ({
 
                 {/* Individual Ratings - Always show in edit mode or when ratings exist */}
                 {(isEditing || currentGame.story || currentGame.renders || currentGame.animations || currentGame.scenes) && (
-                    <div className="flex flex-wrap gap-1 justify-center">
+                    <div className="flex flex-wrap gap-0.5 justify-center">
                         {/* Story Rating */}
-                        <div className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-semibold whitespace-nowrap flex items-center">
+                        <div className="bg-blue-100 text-blue-800 px-1.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap flex items-center">
                             Story: 
                             {isEditing && editData ? (
                                 <input 
@@ -338,7 +341,7 @@ const GameDetailsSidebar: React.FC<GameDetailsSidebarProps> = ({
                         </div>
 
                         {/* Renders Rating */}
-                        <div className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-semibold whitespace-nowrap flex items-center">
+                        <div className="bg-green-100 text-green-800 px-1.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap flex items-center">
                             Renders: 
                             {isEditing && editData ? (
                                 <input 
@@ -355,7 +358,7 @@ const GameDetailsSidebar: React.FC<GameDetailsSidebarProps> = ({
                         </div>
 
                         {/* Animations Rating */}
-                        <div className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-semibold whitespace-nowrap flex items-center">
+                        <div className="bg-purple-100 text-purple-800 px-1.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap flex items-center">
                             Anim: 
                             {isEditing && editData ? (
                                 <input 
@@ -372,7 +375,7 @@ const GameDetailsSidebar: React.FC<GameDetailsSidebarProps> = ({
                         </div>
 
                         {/* Scenes Rating */}
-                        <div className="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-semibold whitespace-nowrap flex items-center">
+                        <div className="bg-red-100 text-red-800 px-1.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap flex items-center">
                             Scenes: 
                             {isEditing && editData ? (
                                 <input 
