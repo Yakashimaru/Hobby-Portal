@@ -181,106 +181,54 @@ const GameDetailsSidebar: React.FC<GameDetailsSidebarProps> = ({
         <Sidebar 
             isVisible={isVisible}
             onClose={onClose}
-            title={
+            title={isEditing && editData ? (
+                <input value={editData.game} onChange={(e) => updateEditField('game', e.target.value)}
+                    className="text-xl font-bold bg-transparent border-b-2 border-white/60 focus:border-white text-white focus:outline-none w-full" />
+            ) : (
                 <div className="flex items-center justify-between w-full">
                     <span>{currentGame.game}</span>
-                    {!isEditing && (
-                        <button
-                            onClick={handleEdit}
-                            className="ml-2 p-1 text-white bg-black/30 hover:bg-black/50 rounded-full transition-colors"
-                            title="Edit Game"
-                        >
-                            <Edit3 size={16} />
-                        </button>
-                    )}
+                    <button onClick={handleEdit} className="ml-2 p-1 text-white bg-black/30 hover:bg-black/50 rounded-full transition-colors" title="Edit Game">
+                        <Edit3 size={16} />
+                    </button>
                 </div>
-            }
-            subtitle={currentGame.developer}
-            year={currentGame.year}
-            rating={currentGame.rating}
-            status={currentGame.status}
+            )}
+            subtitle={isEditing && editData ? (
+                <input value={editData.developer || ''} onChange={(e) => updateEditField('developer', e.target.value)}
+                    className="text-sm bg-transparent border-b border-white/50 focus:border-white text-white/90 focus:outline-none w-full mt-1" placeholder="Developer" />
+            ) : currentGame.developer}
+            year={isEditing && editData ? (
+                <input type="number" value={editData.year || ''} onChange={(e) => updateEditField('year', e.target.value ? parseInt(e.target.value) : undefined)}
+                    className="bg-transparent border-b border-white/50 focus:border-white text-white/80 focus:outline-none w-12 text-center text-xs" min="1990" max="2030" />
+            ) : currentGame.year}
+            rating={isEditing && editData ? (
+                <input type="number" value={editData.rating || ''} onChange={(e) => updateEditField('rating', e.target.value ? parseFloat(e.target.value) : 0)}
+                    className="bg-transparent border-b border-white/50 focus:border-white text-white focus:outline-none w-8 text-center text-xs p-0 m-0" min="0" max="10" step="0.5" />
+            ) : currentGame.rating}
+            status={isEditing && editData ? (
+                <select value={editData.status} onChange={(e) => updateEditField('status', e.target.value as Game['status'])}
+                    className="bg-transparent border-0 focus:outline-none appearance-none cursor-pointer text-xs font-medium">
+                    <option value="Ongoing">Ongoing</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Watchlist">Watchlist</option>
+                    <option value="Dropped">Dropped</option>
+                    <option value="Abandoned">Abandoned</option>
+                </select>
+            ) : currentGame.status}
             statusColor={statusColor}
             headerBgUrl={headerBgUrl}
         >
 
-            {/* Edit Controls */}
             {isEditing && editData && (
-                <div className="px-2 py-4 border-b bg-gray-50 space-y-3">
-                    <div>
-                        <label className="block text-xs text-gray-600 mb-1">Title</label>
-                        <input
-                            value={editData.game}
-                            onChange={(e) => updateEditField('game', e.target.value)}
-                            className="w-full border border-gray-300 rounded px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
-                        />
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                        <div>
-                            <label className="block text-xs text-gray-600 mb-1">Developer</label>
-                            <input
-                                value={editData.developer || ''}
-                                onChange={(e) => updateEditField('developer', e.target.value)}
-                                className="w-full border border-gray-300 rounded px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-xs text-gray-600 mb-1">Year</label>
-                            <input
-                                type="number"
-                                value={editData.year || ''}
-                                onChange={(e) => updateEditField('year', e.target.value ? parseInt(e.target.value) : undefined)}
-                                className="w-full border border-gray-300 rounded px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
-                                min="1990" max="2030"
-                            />
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                        <div>
-                            <label className="block text-xs text-gray-600 mb-1">Status</label>
-                            <select
-                                value={editData.status}
-                                onChange={(e) => updateEditField('status', e.target.value as Game['status'])}
-                                className="w-full border border-gray-300 rounded px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
-                            >
-                                <option value="Ongoing">Ongoing</option>
-                                <option value="Completed">Completed</option>
-                                <option value="Watchlist">Watchlist</option>
-                                <option value="Dropped">Dropped</option>
-                                <option value="Abandoned">Abandoned</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-xs text-gray-600 mb-1">Rating</label>
-                            <input
-                                type="number"
-                                value={editData.rating || ''}
-                                onChange={(e) => updateEditField('rating', e.target.value ? parseFloat(e.target.value) : 0)}
-                                className="w-full border border-gray-300 rounded px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
-                                min="0" max="10" step="0.5"
-                            />
-                        </div>
-                    </div>
-                    <div className="flex gap-2">
-                        <button
-                            onClick={handleSave}
-                            disabled={isSaving}
-                            className="flex-1 bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center"
-                        >
-                            {isSaving ? (
-                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                            ) : (
-                                <Save size={16} className="mr-2" />
-                            )}
-                            {isSaving ? 'Saving...' : 'Save'}
-                        </button>
-                        <button
-                            onClick={handleCancel}
-                            className="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center"
-                        >
-                            <X size={16} className="mr-2" />
-                            Cancel
-                        </button>
-                    </div>
+                <div className="px-2 py-3 border-b flex gap-2">
+                    <button onClick={handleSave} disabled={isSaving}
+                        className="flex-1 bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center">
+                        {isSaving ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" /> : <Save size={16} className="mr-2" />}
+                        {isSaving ? 'Saving...' : 'Save'}
+                    </button>
+                    <button onClick={handleCancel}
+                        className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition-colors flex items-center justify-center">
+                        <X size={16} className="mr-2" />Cancel
+                    </button>
                 </div>
             )}
 
@@ -322,9 +270,9 @@ const GameDetailsSidebar: React.FC<GameDetailsSidebarProps> = ({
 
                 {/* Individual Ratings - Always show in edit mode or when ratings exist */}
                 {(isEditing || currentGame.story || currentGame.renders || currentGame.animations || currentGame.scenes) && (
-                    <div className="flex flex-wrap gap-0.5 justify-center">
+                    <div className={isEditing ? "grid grid-cols-2 gap-1" : "flex flex-wrap gap-0.5 justify-center"}>
                         {/* Story Rating */}
-                        <div className="bg-blue-100 text-blue-800 px-1.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap flex items-center">
+                        <div className="bg-blue-100 text-blue-800 px-1.5 py-1 rounded-full text-xs font-semibold flex items-center justify-center">
                             Story: 
                             {isEditing && editData ? (
                                 <input 
@@ -341,7 +289,7 @@ const GameDetailsSidebar: React.FC<GameDetailsSidebarProps> = ({
                         </div>
 
                         {/* Renders Rating */}
-                        <div className="bg-green-100 text-green-800 px-1.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap flex items-center">
+                        <div className="bg-green-100 text-green-800 px-1.5 py-1 rounded-full text-xs font-semibold flex items-center justify-center">
                             Renders: 
                             {isEditing && editData ? (
                                 <input 
@@ -358,7 +306,7 @@ const GameDetailsSidebar: React.FC<GameDetailsSidebarProps> = ({
                         </div>
 
                         {/* Animations Rating */}
-                        <div className="bg-purple-100 text-purple-800 px-1.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap flex items-center">
+                        <div className="bg-purple-100 text-purple-800 px-1.5 py-1 rounded-full text-xs font-semibold flex items-center justify-center">
                             Anim: 
                             {isEditing && editData ? (
                                 <input 
@@ -375,7 +323,7 @@ const GameDetailsSidebar: React.FC<GameDetailsSidebarProps> = ({
                         </div>
 
                         {/* Scenes Rating */}
-                        <div className="bg-red-100 text-red-800 px-1.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap flex items-center">
+                        <div className="bg-red-100 text-red-800 px-1.5 py-1 rounded-full text-xs font-semibold flex items-center justify-center">
                             Scenes: 
                             {isEditing && editData ? (
                                 <input 

@@ -31,7 +31,7 @@ const Sidebar = ({ children, isVisible, onClose, title, subtitle, year, rating, 
   return (
     <div
       ref={sidebarRef}
-      className={`fixed top-16 right-0 h-[calc(100vh-4rem)] w-80 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out z-40 overflow-y-auto ${isVisible ? 'translate-x-0' : 'translate-x-full'}`}
+      className={`fixed top-16 right-0 h-[calc(100vh-4rem)] w-[340px] bg-white shadow-2xl transform transition-transform duration-300 ease-in-out z-40 overflow-y-auto ${isVisible ? 'translate-x-0' : 'translate-x-full'}`}
     >
       <div
         className="border-b px-2 py-4 relative overflow-visible"
@@ -52,7 +52,7 @@ const Sidebar = ({ children, isVisible, onClose, title, subtitle, year, rating, 
 
         {/* Hexagon Rating Badge */}
         {rating && (
-          <div className="absolute top-1/2 right-0 z-10 transform -translate-y-1/2">
+          <div className="absolute top-1/2 right-0 z-20 transform -translate-y-1/2">
             <div className="relative">
               <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg"
                  style={{clipPath: 'polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%)'}}>
