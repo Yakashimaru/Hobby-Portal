@@ -19,24 +19,14 @@ const Sidebar = ({ children, isVisible, onClose, title, subtitle, year, rating, 
   const sidebarRef = useClickOutside(() => {
     if (isVisible) onClose();
   });
-  const [headerSrc, setHeaderSrc] = useState(headerBgUrl);
   const [headerImgLoaded, setHeaderImgLoaded] = useState(false);
   const [headerImgError, setHeaderImgError] = useState(false);
-  const showBg = !!headerSrc && headerImgLoaded && !headerImgError;
+  const showBg = !!headerBgUrl && headerImgLoaded && !headerImgError;
 
   useEffect(() => {
-    setHeaderSrc(headerBgUrl);
     setHeaderImgLoaded(false);
     setHeaderImgError(false);
   }, [headerBgUrl]);
-
-  const handleHeaderImgError = () => {
-    if (headerSrc?.endsWith('.jpg')) {
-      setHeaderSrc(headerSrc.replace('.jpg', '.png'));
-    } else {
-      setHeaderImgError(true);
-    }
-  };
 
   return (
     <div
@@ -47,14 +37,14 @@ const Sidebar = ({ children, isVisible, onClose, title, subtitle, year, rating, 
         className="border-b px-2 py-4 relative overflow-visible"
         style={{
           backgroundColor: showBg ? undefined : 'white',
-          backgroundImage: showBg ? `url(${headerSrc})` : undefined,
+          backgroundImage: showBg ? `url(${headerBgUrl})` : undefined,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
       >
         {/* Hidden img used only for load error detection */}
         {headerBgUrl && (
-          <img key={headerSrc} src={headerSrc} alt="" className="hidden" onLoad={() => setHeaderImgLoaded(true)} onError={handleHeaderImgError} />
+          <img key={headerBgUrl} src={headerBgUrl} alt="" className="hidden" onLoad={() => setHeaderImgLoaded(true)} onError={() => setHeaderImgError(true)} />
         )}
         {showBg && (
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-black/90" />

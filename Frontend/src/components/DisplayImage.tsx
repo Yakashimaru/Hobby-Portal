@@ -12,25 +12,13 @@ interface DisplayImageProps {
 const DisplayImage = ({ imageTitle, path, className, alt, fallbackText = "No Image", cacheBuster }: DisplayImageProps) => {
         const baseUrl = import.meta.env.VITE_R2_IMAGE_URL;
         const qs = cacheBuster ? `?ts=${cacheBuster}` : '';
-        const jpgSrc = `${baseUrl}/${path}${imageTitle}.jpg${qs}`;
-        const pngSrc = `${baseUrl}/${path}${imageTitle}.png${qs}`;
+        const src = `${baseUrl}/${path}${imageTitle}.jpg${qs}`;
 
-        const [currentSrc, setCurrentSrc] = useState(jpgSrc);
         const [hasError, setHasError] = useState(false);
 
-        // Reset state when imageTitle changes
         useEffect(() => {
-            setCurrentSrc(jpgSrc);
             setHasError(false);
-        }, [jpgSrc]); // jpgSrc changes when imageTitle changes
-
-        const handleError = () => {
-            if (currentSrc === jpgSrc) {
-                setCurrentSrc(pngSrc);
-            } else {
-                setHasError(true);
-            }
-        };
+        }, [src]);
 
         if (hasError) {
             return (
@@ -41,12 +29,12 @@ const DisplayImage = ({ imageTitle, path, className, alt, fallbackText = "No Ima
         }
 
         return (
-            <img 
-                src={currentSrc}
+            <img
+                src={src}
                 alt={alt}
                 loading="lazy"
                 className={className}
-                onError={handleError}
+                onError={() => setHasError(true)}
             />
         );
     };
