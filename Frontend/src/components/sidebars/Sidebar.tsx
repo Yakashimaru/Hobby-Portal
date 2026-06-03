@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { useClickOutside } from "../../hooks/useClickOutside";
 import { Star } from "lucide-react";
 
@@ -11,19 +12,44 @@ interface SidebarProps {
     rating?: React.ReactNode;
     status?: React.ReactNode;
     statusColor?: React.ReactNode;
+    headerBgUrl?: string;
 }
 
-const Sidebar = ({ children, isVisible, onClose, title, subtitle, year , rating, status, statusColor}: SidebarProps) => {
+const Sidebar = ({ children, isVisible, onClose, title, subtitle, year, rating, status, statusColor, headerBgUrl }: SidebarProps) => {
   const sidebarRef = useClickOutside(() => {
     if (isVisible) onClose();
   });
-  
+  const [headerImgLoaded, setHeaderImgLoaded] = useState(false);
+  const [headerImgError, setHeaderImgError] = useState(false);
+  const showBg = !!headerBgUrl && headerImgLoaded && !headerImgError;
+
+  useEffect(() => {
+    setHeaderImgLoaded(false);
+    setHeaderImgError(false);
+  }, [headerBgUrl]);
+
   return (
-    <div 
+    <div
       ref={sidebarRef}
       className={`fixed top-16 right-0 h-[calc(100vh-4rem)] w-80 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out z-40 overflow-y-auto ${isVisible ? 'translate-x-0' : 'translate-x-full'}`}
     >
-      <div className="bg-white border-b p-4 relative">    
+      <div
+        className="border-b px-2 py-4 relative overflow-visible"
+        style={{
+          backgroundColor: showBg ? undefined : 'white',
+          backgroundImage: showBg ? `url(${headerBgUrl})` : undefined,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        {/* Hidden img used only for load error detection */}
+        {headerBgUrl && (
+          <img key={headerBgUrl} src={headerBgUrl} alt="" className="hidden" onLoad={() => setHeaderImgLoaded(true)} onError={() => setHeaderImgError(true)} />
+        )}
+        {showBg && (
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-black/90" />
+        )}
+
         {/* Hexagon Rating Badge */}
         {rating && (
           <div className="absolute top-1/2 right-0 z-10 transform -translate-y-1/2">
@@ -38,12 +64,18 @@ const Sidebar = ({ children, isVisible, onClose, title, subtitle, year , rating,
             </div>
           </div>
         )}
-        
+
         {/* Title and Subtitle */}
-        <div className="pr-16">
-          <h2 className="text-xl font-bold text-gray-900 leading-tight">{title}</h2>
+        <div className="pr-16 relative z-10">
+          <h2
+            className={`text-xl font-bold leading-tight ${showBg ? 'text-white' : 'text-gray-900'}`}
+            style={showBg ? { textShadow: '0 1px 4px rgba(0,0,0,0.9)' } : undefined}
+          >{title}</h2>
           {subtitle && (
-            <p className="text-sm text-gray-600 mt-1">{subtitle}</p>
+            <p
+              className={`text-sm mt-1 ${showBg ? 'text-white/90' : 'text-gray-600'}`}
+              style={showBg ? { textShadow: '0 1px 3px rgba(0,0,0,0.9)' } : undefined}
+            >{subtitle}</p>
           )}
           {/* Minimal Status + Year */}
           <div className="flex items-center gap-2 mt-1">
@@ -53,7 +85,7 @@ const Sidebar = ({ children, isVisible, onClose, title, subtitle, year , rating,
                 </span>
               )}
               {year && (
-                <span className="text-gray-400" style={{ fontSize: '10px' }}>
+                <span className={`${showBg ? 'text-white/70' : 'text-gray-400'}`} style={{ fontSize: '10px' }}>
                   {year}
                 </span>
               )}

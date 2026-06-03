@@ -80,19 +80,17 @@ def post_database(table_name, data):
             if value.strip() == "" or value.strip().lower() == "null":
                 column_values_list[i] = None
 
-        # Construct the SQL query with placeholders for values
-        sql_query = f"INSERT INTO {table_name} ({column_names}) VALUES ({', '.join(['%s'] * len(column_values_list))})"
+        sql_query = f"INSERT INTO {table_name} ({column_names}) VALUES ({', '.join(['%s'] * len(column_values_list))}) RETURNING *"
 
-        # Execute the query with column values as parameters
         cur.execute(sql_query, column_values_list)
+
+        row = cur.fetchone()
+        columns = [desc[0] for desc in cur.description]
 
         conn.commit()
         cur.close()
 
-        return jsonify({
-            "code": 200,
-            "message": "Data inserted successfully"
-        }), 200
+        return jsonify(dict(zip(columns, row))), 200
 
     except Exception as e:
         return internal_error_exception(e)
