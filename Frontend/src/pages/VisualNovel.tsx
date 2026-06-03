@@ -185,7 +185,7 @@ const VisualNovel = () => {
     return (
         <>
             <div className={`min-h-screen bg-gray-50 p-6 transition-all duration-300 ${
-                isSidebarVisible ? 'pr-80' : ''
+                isSidebarVisible ? 'pr-[340px]' : ''
             }`}>                
                 <div className="w-full max-w-none px-4">
                     <div className="mb-8">
