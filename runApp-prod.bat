@@ -19,7 +19,7 @@ start /min "Backend-Scrapping Logger" cmd /k py -m Backend.apis.log_scrapper
 REM build Frontend then run preview
 cd /d "%~dp0Frontend"
 call npm run build
-start /min "Frontend" cmd /k npm run preview
+start /min "Frontend" cmd /k "title Frontend & npm run preview"
 
 timeout /t 3 /nobreak >nul
 start http://localhost:4173/vn

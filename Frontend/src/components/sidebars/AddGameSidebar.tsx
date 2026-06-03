@@ -21,6 +21,7 @@ interface ScrapedData {
 }
 
 interface BannerToast {
+  id: number;
   bannerUrl: string;
   gameName: string;
 }
@@ -43,8 +44,8 @@ const AddGameSidebar: React.FC<AddGameSidebarProps> = ({ isVisible, onClose, onG
   const [formData, setFormData] = useState<Partial<Game>>(createEmptyGame());
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [useBanner, setUseBanner] = useState(false);
-  const [bannerToast, setBannerToast] = useState<BannerToast | null>(null);
-  const [bannerRetrying, setBannerRetrying] = useState(false);
+  const [bannerToasts, setBannerToasts] = useState<BannerToast[]>([]);
+  const [bannerRetryingId, setBannerRetryingId] = useState<number | null>(null);
   const [showMore, setShowMore] = useState(false);
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -72,7 +73,7 @@ const AddGameSidebar: React.FC<AddGameSidebarProps> = ({ isVisible, onClose, onG
       if (!response.ok) throw new Error(`Server error: ${response.status}`);
     } catch (error) {
       console.error('Banner download failed:', error);
-      setBannerToast({ bannerUrl, gameName });
+      setBannerToasts(prev => [...prev, { id: Date.now(), bannerUrl, gameName }]);
     }
   };
 
@@ -162,21 +163,20 @@ const AddGameSidebar: React.FC<AddGameSidebarProps> = ({ isVisible, onClose, onG
     }
   };
 
-  const handleRetryBanner = async () => {
-    if (!bannerToast) return;
-    setBannerRetrying(true);
+  const handleRetryBanner = async (toast: BannerToast) => {
+    setBannerRetryingId(toast.id);
     try {
       const response = await fetch(`${VITE_API_SCRAPPER_URL}/downloadBanner`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ banner_url: bannerToast.bannerUrl, game_name: bannerToast.gameName })
+        body: JSON.stringify({ banner_url: toast.bannerUrl, game_name: toast.gameName })
       });
       if (!response.ok) throw new Error(`Server error: ${response.status}`);
-      setBannerToast(null);
+      setBannerToasts(prev => prev.filter(t => t.id !== toast.id));
     } catch (error) {
       console.error('Banner retry failed:', error);
     } finally {
-      setBannerRetrying(false);
+      setBannerRetryingId(null);
     }
   };
 
@@ -575,24 +575,28 @@ const AddGameSidebar: React.FC<AddGameSidebarProps> = ({ isVisible, onClose, onG
         {mode === 'manual' && renderManualMode()}
       </Sidebar>
 
-      {/* Banner error toast — persists after sidebar closes */}
-      {bannerToast && (
-        <div className="fixed bottom-4 right-4 z-50 bg-white border border-red-200 rounded-lg shadow-lg p-4 w-72">
-          <div className="flex items-start justify-between mb-2">
-            <p className="text-sm font-medium text-red-700">Banner download failed</p>
-            <button onClick={() => setBannerToast(null)} className="text-gray-400 hover:text-gray-600 ml-2">
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-          <p className="text-xs text-gray-500 mb-3">{bannerToast.gameName}</p>
-          <button
-            onClick={handleRetryBanner}
-            disabled={bannerRetrying}
-            className="w-full bg-red-500 hover:bg-red-600 disabled:bg-gray-300 text-white py-1.5 rounded text-xs flex items-center justify-center"
-          >
-            {bannerRetrying ? <Loader className="w-3 h-3 animate-spin mr-1" /> : <RefreshCw className="w-3 h-3 mr-1" />}
-            Retry
-          </button>
+      {/* Banner error toasts — stacked, persist after sidebar closes */}
+      {bannerToasts.length > 0 && (
+        <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
+          {bannerToasts.map(toast => (
+            <div key={toast.id} className="bg-white border border-red-200 rounded-lg shadow-lg p-4 w-72">
+              <div className="flex items-start justify-between mb-2">
+                <p className="text-sm font-medium text-red-700">Banner download failed</p>
+                <button onClick={() => setBannerToasts(prev => prev.filter(t => t.id !== toast.id))} className="text-gray-400 hover:text-gray-600 ml-2">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 mb-3">{toast.gameName}</p>
+              <button
+                onClick={() => handleRetryBanner(toast)}
+                disabled={bannerRetryingId === toast.id}
+                className="w-full bg-red-500 hover:bg-red-600 disabled:bg-gray-300 text-white py-1.5 rounded text-xs flex items-center justify-center"
+              >
+                {bannerRetryingId === toast.id ? <Loader className="w-3 h-3 animate-spin mr-1" /> : <RefreshCw className="w-3 h-3 mr-1" />}
+                Retry
+              </button>
+            </div>
+          ))}
         </div>
       )}
     </>

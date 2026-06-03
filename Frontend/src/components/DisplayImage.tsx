@@ -6,12 +6,14 @@ interface DisplayImageProps {
     className: string;
     alt: string;
     fallbackText?: string;
+    cacheBuster?: number;
 }
 
-const DisplayImage = ({ imageTitle, path, className, alt, fallbackText = "No Image" }: DisplayImageProps) => {
+const DisplayImage = ({ imageTitle, path, className, alt, fallbackText = "No Image", cacheBuster }: DisplayImageProps) => {
         const baseUrl = import.meta.env.VITE_R2_IMAGE_URL;
-        const jpgSrc = `${baseUrl}/${path}${imageTitle}.jpg`;
-        const pngSrc = `${baseUrl}/${path}${imageTitle}.png`;
+        const qs = cacheBuster ? `?ts=${cacheBuster}` : '';
+        const jpgSrc = `${baseUrl}/${path}${imageTitle}.jpg${qs}`;
+        const pngSrc = `${baseUrl}/${path}${imageTitle}.png${qs}`;
 
         const [currentSrc, setCurrentSrc] = useState(jpgSrc);
         const [hasError, setHasError] = useState(false);

@@ -9,12 +9,18 @@ from PIL import Image
 from dotenv import load_dotenv
 
 load_dotenv(os.path.join('Backend', '.env'))
+load_dotenv(os.path.join('Backend', '.env.sites'))
 
-BANNER_HEADERS = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    'Referer': 'https://redacted-site.com/',
-    'Accept': 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
-}
+def _build_banner_headers():
+    site_f = os.getenv('SITE_F', '')
+    referer = f'https://{site_f}/' if site_f else ''
+    return {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Referer': referer,
+        'Accept': 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
+    }
+
+BANNER_HEADERS = _build_banner_headers()
 
 R2_FOLDER = 'visual_novel'
 
