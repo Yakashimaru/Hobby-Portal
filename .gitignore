@@ -12,3 +12,4 @@ node_modules
 /Backend/scrapers/vn_daily_scrap/service/dist
 /Frontend/.vite
 upload_images.py
+dev_*.py

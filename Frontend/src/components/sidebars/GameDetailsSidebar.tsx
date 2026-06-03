@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Heart, Edit3, Save, X, Trash2} from 'lucide-react';
+import { Heart, Edit3, Save, X, Trash2, Upload, Loader, RefreshCw } from 'lucide-react';
 
 import DisplayImage from '../DisplayImage';
 import type { Game } from 'types/game';
@@ -31,8 +31,14 @@ const GameDetailsSidebar: React.FC<GameDetailsSidebarProps> = ({
     const [isEditing, setIsEditing] = useState(false);
     const [editData, setEditData] = useState<Game | null>(null);
     const [isSaving, setIsSaving] = useState(false);
+    const [isReplacingBanner, setIsReplacingBanner] = useState(false);
+    const [bannerUrlInput, setBannerUrlInput] = useState('');
+    const [bannerUploading, setBannerUploading] = useState(false);
+    const [bannerTimestamp, setBannerTimestamp] = useState<number | null>(null);
 
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+    const SCRAPPER_URL = import.meta.env.VITE_API_SCRAPPER_URL;
+    const R2_URL = import.meta.env.VITE_R2_IMAGE_URL;
 
     if (!game) return null;
 
@@ -40,6 +46,8 @@ const GameDetailsSidebar: React.FC<GameDetailsSidebarProps> = ({
     const favorites = [currentGame.fav_1, currentGame.fav_2, currentGame.fav_3].filter(Boolean);
 
     const imagePath = "visual_novel/";
+
+    const headerBgUrl = `${R2_URL}/${imagePath}${formatUnderscoreName(removeSpecialCharacters(currentGame.game))}.jpg${bannerTimestamp ? `?ts=${bannerTimestamp}` : ''}`;
 
     const handleFavoriteClick = (index: number) => {
         onOpenGallery(game, index);
@@ -116,6 +124,28 @@ const GameDetailsSidebar: React.FC<GameDetailsSidebarProps> = ({
         }
     };
 
+    const handleReplaceBanner = async () => {
+        if (!bannerUrlInput.trim() || !game) return;
+        setBannerUploading(true);
+        try {
+            const response = await fetch(`${SCRAPPER_URL}/downloadBanner`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ banner_url: bannerUrlInput.trim(), game_name: game.game })
+            });
+            if (!response.ok) throw new Error(`Server error: ${response.status}`);
+            setBannerTimestamp(Date.now());
+            setBannerUrlInput('');
+            setIsReplacingBanner(false);
+            onSilentRefetch?.();
+        } catch (error) {
+            console.error('Banner replace failed:', error);
+            alert('Failed to replace banner. Please check the URL and try again.');
+        } finally {
+            setBannerUploading(false);
+        }
+    };
+
     // Delete handler
     const handleDelete = async () => {
         if (!game) return;
@@ -151,71 +181,74 @@ const GameDetailsSidebar: React.FC<GameDetailsSidebarProps> = ({
         <Sidebar 
             isVisible={isVisible}
             onClose={onClose}
-            title={isEditing && editData ? (
-                <input 
-                    value={editData.game}
-                    onChange={(e) => updateEditField('game', e.target.value)}
-                    className="text-xl font-bold bg-transparent border-b-2 border-blue-500 focus:outline-none w-full"
-                />
-            ) : (
-                <div className="flex items-center justify-between w-full">
-                    <span>{currentGame.game}</span>
-                    <button 
-                        onClick={handleEdit}
-                        className="ml-2 p-1 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded transition-colors"
-                        title="Edit Game"
-                    >
-                        <Edit3 size={16} />
-                    </button>
-                </div>
-            )}
-            subtitle={isEditing && editData ? (
-                <input 
-                    value={editData.developer || ''}
-                    onChange={(e) => updateEditField('developer', e.target.value)}
-                    className="text-sm bg-transparent border-b border-gray-300 focus:border-blue-500 focus:outline-none w-full mt-1"
-                    placeholder="Developer"
-                />
-            ) : currentGame.developer}
-            year={isEditing && editData ? (
-                <input 
-                    type="number"
-                    value={editData.year || ''}
-                    onChange={(e) => updateEditField('year', e.target.value ? parseInt(e.target.value) : undefined)}
-                    className="bg-transparent border-b border-gray-300 focus:border-blue-500 focus:outline-none w-12 text-center text-xs"
-                    min="1990" max="2030"
-                />
-            ) : currentGame.year}
-            rating={isEditing && editData ? (
-                <input 
-                    type="number"
-                    value={editData.rating || ''}
-                    onChange={(e) => updateEditField('rating', e.target.value ? parseFloat(e.target.value) : 0)}
-                    className="bg-transparent border-b border-gray-300 focus:border-blue-500 focus:outline-none w-8 text-center text-xs"
-                    min="0" max="10" step="0.5"
-                />
-            ) : currentGame.rating}
-            status={isEditing && editData ? (
-                <select 
-                    value={editData.status}
-                    onChange={(e) => updateEditField('status', e.target.value as Game['status'])}
-                    className="bg-transparent border border-gray-300 rounded text-xs p-1 focus:border-blue-500 focus:outline-none"
-                >
-                    <option value="Ongoing">Ongoing</option>
-                    <option value="Completed">Completed</option>
-                    <option value="Watchlist">Watchlist</option>
-                    <option value="Dropped">Dropped</option>
-                    <option value="Abandoned">Abandoned</option>
-                </select>
-            ) : currentGame.status}
+            title={<span>{currentGame.game}</span>}
+            subtitle={currentGame.developer}
+            year={currentGame.year}
+            rating={currentGame.rating}
+            status={currentGame.status}
             statusColor={statusColor}
+            headerBgUrl={headerBgUrl}
         >
 
-            {/* Edit Controls - Save/Cancel only show when editing */}
-            {isEditing && (
-                <div className="p-4 border-b bg-gray-50">
+            {/* Edit Controls */}
+            {isEditing && editData && (
+                <div className="p-4 border-b bg-gray-50 space-y-3">
+                    <div>
+                        <label className="block text-xs text-gray-600 mb-1">Title</label>
+                        <input
+                            value={editData.game}
+                            onChange={(e) => updateEditField('game', e.target.value)}
+                            className="w-full border border-gray-300 rounded px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
+                        />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                        <div>
+                            <label className="block text-xs text-gray-600 mb-1">Developer</label>
+                            <input
+                                value={editData.developer || ''}
+                                onChange={(e) => updateEditField('developer', e.target.value)}
+                                className="w-full border border-gray-300 rounded px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs text-gray-600 mb-1">Year</label>
+                            <input
+                                type="number"
+                                value={editData.year || ''}
+                                onChange={(e) => updateEditField('year', e.target.value ? parseInt(e.target.value) : undefined)}
+                                className="w-full border border-gray-300 rounded px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
+                                min="1990" max="2030"
+                            />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                        <div>
+                            <label className="block text-xs text-gray-600 mb-1">Status</label>
+                            <select
+                                value={editData.status}
+                                onChange={(e) => updateEditField('status', e.target.value as Game['status'])}
+                                className="w-full border border-gray-300 rounded px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
+                            >
+                                <option value="Ongoing">Ongoing</option>
+                                <option value="Completed">Completed</option>
+                                <option value="Watchlist">Watchlist</option>
+                                <option value="Dropped">Dropped</option>
+                                <option value="Abandoned">Abandoned</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-xs text-gray-600 mb-1">Rating</label>
+                            <input
+                                type="number"
+                                value={editData.rating || ''}
+                                onChange={(e) => updateEditField('rating', e.target.value ? parseFloat(e.target.value) : 0)}
+                                className="w-full border border-gray-300 rounded px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
+                                min="0" max="10" step="0.5"
+                            />
+                        </div>
+                    </div>
                     <div className="flex gap-2">
-                        <button 
+                        <button
                             onClick={handleSave}
                             disabled={isSaving}
                             className="flex-1 bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center"
@@ -227,7 +260,7 @@ const GameDetailsSidebar: React.FC<GameDetailsSidebarProps> = ({
                             )}
                             {isSaving ? 'Saving...' : 'Save'}
                         </button>
-                        <button 
+                        <button
                             onClick={handleCancel}
                             className="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center"
                         >
@@ -239,6 +272,51 @@ const GameDetailsSidebar: React.FC<GameDetailsSidebarProps> = ({
             )}
 
             <div className="p-4 space-y-2">
+                {/* Edit / Replace banner controls */}
+                {!isEditing && (
+                    <button
+                        onClick={handleEdit}
+                        className="flex items-center text-xs text-gray-400 hover:text-gray-600 mb-1"
+                    >
+                        <Edit3 className="w-3 h-3 mr-1" />
+                        Edit details
+                    </button>
+                )}
+                {/* Replace banner — edit mode only */}
+                {isEditing && (!isReplacingBanner ? (
+                    <button
+                        onClick={() => setIsReplacingBanner(true)}
+                        className="flex items-center text-xs text-gray-400 hover:text-gray-600 mb-1"
+                    >
+                        <Upload className="w-3 h-3 mr-1" />
+                        Replace banner
+                    </button>
+                ) : (
+                    <div className="flex gap-1 mb-1">
+                        <input
+                            type="url"
+                            value={bannerUrlInput}
+                            onChange={e => setBannerUrlInput(e.target.value)}
+                            onKeyDown={e => e.key === 'Enter' && handleReplaceBanner()}
+                            placeholder="Image URL"
+                            className="flex-1 border border-gray-300 rounded px-2 py-1 text-xs focus:border-blue-500 focus:outline-none"
+                        />
+                        <button
+                            onClick={handleReplaceBanner}
+                            disabled={!bannerUrlInput.trim() || bannerUploading}
+                            className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white px-2 py-1 rounded text-xs flex items-center"
+                        >
+                            {bannerUploading ? <Loader className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+                        </button>
+                        <button
+                            onClick={() => { setIsReplacingBanner(false); setBannerUrlInput(''); }}
+                            className="text-gray-400 hover:text-gray-600 px-1"
+                        >
+                            <X className="w-3 h-3" />
+                        </button>
+                    </div>
+                ))}
+
                 {/* Individual Ratings - Always show in edit mode or when ratings exist */}
                 {(isEditing || currentGame.story || currentGame.renders || currentGame.animations || currentGame.scenes) && (
                     <div className="flex flex-wrap gap-1 justify-center">
