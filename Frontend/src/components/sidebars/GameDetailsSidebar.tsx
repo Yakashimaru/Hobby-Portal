@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Heart, Edit3, Save, X, Trash2, Upload, Loader, RefreshCw } from 'lucide-react';
+import { Heart, Edit3, Save, X, Trash2, Upload, Loader, RefreshCw, ExternalLink } from 'lucide-react';
 
 import DisplayImage from '../DisplayImage';
 import type { Game } from 'types/game';
@@ -8,6 +8,7 @@ import Sidebar from './Sidebar';
 import HoverImagePreview from '../HoverImagePreview';
 import { formatUnderscoreName, removeSpecialCharacters } from '../../utils/formatting';
 import fetchRequest from '../../utils/fetchRequest';
+import { updateService } from '../../services/gameService';
 
 interface GameDetailsSidebarProps {
     game: Game | null;
@@ -187,9 +188,17 @@ const GameDetailsSidebar: React.FC<GameDetailsSidebarProps> = ({
             ) : (
                 <div className="flex items-center justify-between w-full">
                     <span>{currentGame.game}</span>
-                    <button onClick={handleEdit} className="ml-2 p-1 text-white bg-black/30 hover:bg-black/50 rounded-full transition-colors" title="Edit Game">
-                        <Edit3 size={16} />
-                    </button>
+                    <div className="flex items-center ml-2 gap-1">
+                        {currentGame.src_f && (
+                            <a href={updateService.generateUrlF(currentGame.src_f)} target="_blank" rel="noopener noreferrer"
+                                className="p-1 text-white bg-black/30 hover:bg-black/50 rounded-full transition-colors" title="Open Source Page">
+                                <ExternalLink size={16} />
+                            </a>
+                        )}
+                        <button onClick={handleEdit} className="p-1 text-white bg-black/30 hover:bg-black/50 rounded-full transition-colors" title="Edit Game">
+                            <Edit3 size={16} />
+                        </button>
+                    </div>
                 </div>
             )}
             subtitle={isEditing && editData ? (
@@ -268,8 +277,8 @@ const GameDetailsSidebar: React.FC<GameDetailsSidebarProps> = ({
                     </div>
                 ))}
 
-                {/* Individual Ratings - Always show in edit mode or when ratings exist */}
-                {(isEditing || currentGame.story || currentGame.renders || currentGame.animations || currentGame.scenes) && (
+                {/* Individual Ratings */}
+                {!!(isEditing || currentGame.story || currentGame.renders || currentGame.animations || currentGame.scenes) && (
                     <div className={isEditing ? "grid grid-cols-2 gap-1" : "flex flex-wrap gap-0.5 justify-center"}>
                         {/* Story Rating */}
                         <div className="bg-blue-100 text-blue-800 px-1.5 py-1 rounded-full text-xs font-semibold flex items-center justify-center">

@@ -51,7 +51,7 @@ const Sidebar = ({ children, isVisible, onClose, title, subtitle, year, rating, 
         )}
 
         {/* Hexagon Rating Badge */}
-        {rating && (
+        {!!rating && (
           <div className="absolute top-1/2 right-0 z-20 transform -translate-y-1/2">
             <div className="relative">
               <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg"
