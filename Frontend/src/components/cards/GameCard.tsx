@@ -5,7 +5,7 @@ import { Star, Calendar, RefreshCw, Check, Play } from 'lucide-react';
 import { checkForUpdate } from '../../utils/checkForUpdate';
 import Card from './Card';
 import { formatUnderscoreName, removeSpecialCharacters } from '../../utils/formatting';
-import { gameService } from '../../services/gameService';
+import { gameService, updateService } from '../../services/gameService';
 
 interface GameCardProps {
     game: Game;
@@ -23,12 +23,17 @@ const GameCard = memo(({ game, onGameClick, statusColor, onSilentRefetch }: Game
     
     const handleCardClick = (e: React.MouseEvent) => {
         e.stopPropagation(); // Prevent event bubbling
+        if ((e.ctrlKey || e.metaKey) && game.src_f) {
+            window.open(updateService.generateUrlF(game.src_f), '_blank', 'noopener,noreferrer');
+            return;
+        }
         onGameClick(game);
     };
     
     return (
         <Card 
             onClick={handleCardClick}
+            title={game.src_f ? 'Ctrl+click to open source page' : undefined}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
@@ -129,6 +134,7 @@ const GameCard = memo(({ game, onGameClick, statusColor, onSilentRefetch }: Game
     prevProps.game.rating === nextProps.game.rating &&
     prevProps.game.last_updated_ver === nextProps.game.last_updated_ver &&
     prevProps.game.last_played_ver === nextProps.game.last_played_ver &&
+    prevProps.game.src_f === nextProps.game.src_f &&
     prevProps.statusColor === nextProps.statusColor
   );
 });
